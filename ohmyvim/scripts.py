@@ -39,7 +39,7 @@ class Manager(object):
                 fd.write('')
         if not isfile(join(self.ohmyvim, 'ohmyvim.vim')):
             with open(join(self.ohmyvim, 'ohmyvim.vim'), 'w') as fd:
-                fd.write('source %s\n' % join(self.runtime, 'vim-pathogen', 'autoload', 'pathogen.vim'))            
+                fd.write('source %s\n' % join(self.runtime, 'vim-pathogen', 'autoload', 'pathogen.vim'))
                 fd.write('call pathogen#runtime_append_all_bundles()\n')
                 fd.write('source %s\n' % join(self.ohmyvim, 'theme.vim'))
         source = ':source %s\n' % join(self.ohmyvim, 'ohmyvim.vim')
@@ -63,7 +63,7 @@ class Manager(object):
             if isdir(join(dirname, '.git')):
                 themes = []
                 if isdir(join(dirname, 'colors')):
-                    themes = os.listdir(join(dirname, 'colors'))        
+                    themes = os.listdir(join(dirname, 'colors'))
                     themes = [t[:-4] for t in themes]
                 plugins.append((plugin, dirname, themes))
         return plugins
@@ -83,22 +83,36 @@ class Manager(object):
             remote = p.stdout.read().split('\n')[0]
             print '* %s (%s)' % (plugin, remote.split('\t')[1].split(' ')[0])
 
-    def install(self, args):
-        for url in args.url:
-            if '://github.com' in url and not url.endswith('.git'):
-                url = url.replace('http://', 'https://').rstrip() + '.git'
-            if url.endswith('.git'):
-                name = basename(url)[:-4]
-                dirname = join(self.runtime, name)
-                if os.path.isdir(dirname):
-                    print '%s already installed. Upgrading...' % name
-                    os.chdir(dirname)
-                    Popen(['git', 'pull']).wait()
-                else:
-                    print 'Installing bundle %s...' % name
-                    Popen(['git', 'clone', url, dirname]).wait()
+    def install_url(self, url):
+        dependencies = []
+        if '://github.com' in url and not url.endswith('.git'):
+            url = url.replace('http://', 'https://').rstrip() + '.git'
+        if url.endswith('.git'):
+            name = basename(url)[:-4]
+            dirname = join(self.runtime, name)
+            if os.path.isdir(dirname):
+                print '%s already installed. Upgrading...' % name
+                os.chdir(dirname)
+                Popen(['git', 'pull']).wait()
             else:
-                print '%s is not a git url' % url
+                print 'Installing bundle %s...' % name
+                Popen(['git', 'clone', url, dirname]).wait()
+            if isfile(join(dirname, 'requires.txt')):
+                with open(join(dirname, 'requires.txt')) as fd:
+                    dependencies = [d.strip() for d in fd.readlines()]
+        else:
+            print '%s is not a git url' % url
+        return dependencies
+
+    def install(self, args):
+        dependencies = set()
+        for url in args.url:
+            for d in self.install_url(url):
+                dependencies.add(d)
+        if dependencies:
+            print 'Processing dependencies...'
+            for url in dependencies:
+                 self.install_url(url)
 
     def upgrade(self, args):
         for plugin, dirname, themes in self.get_plugins():
@@ -106,7 +120,7 @@ class Manager(object):
                 print 'Upgrading %s...' % plugin
                 os.chdir(dirname)
                 Popen(['git', 'pull']).wait()
-           
+
 
     def remove(self, args):
         for plugin, dirname, themes in self.get_plugins():
