@@ -21,7 +21,7 @@ Install from the repository::
 Commands
 ========
 
-Search on github::
+Browse all VimL projects available on github in your favorite browser::
 
     $ oh-my-vim search [-t] term
 
@@ -45,4 +45,19 @@ Generate a ``requires.txt`` file::
 Upgrade bundles::
 
     $ oh-my-vim upgrade [bundle1|bundle2|...]
+
+FAQ
+===
+
+**Can I use oh-my-vim from Vim ?**
+
+Yes. Just use ``:OhMyVim <args>``
+
+**This is a great project. Can I offer you a beer ?**
+
+Sure.
+
+**Good project but I'm missing a feature. Can you add it ?**
+
+No. But you can. Fork the repository and submit a pull request.
 
