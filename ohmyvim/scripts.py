@@ -85,6 +85,8 @@ class Manager(object):
 
     def install(self, args):
         for url in args.url:
+            if '://github.com' in url and not url.endswith('.git'):
+                url = url.replace('http://', 'https://').rstrip() + '.git'
             if url.endswith('.git'):
                 name = basename(url)[:-4]
                 dirname = join(self.runtime, name)
@@ -121,7 +123,7 @@ class Manager(object):
         if theme:
             for plugin, dirname, themes in self.get_plugins():
                 if theme in themes:
-                    print 'Activating %s theme...' % theme
+                    print 'Activate %s theme...' % theme
                     with open(join(self.ohmyvim, 'theme.vim'), 'w') as fd:
                         fd.write(':colo %s\n' % theme)
             return
