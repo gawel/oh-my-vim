@@ -3,10 +3,11 @@ Oh My Vim!
 
 This package allow you to manage your vim plugins
 
-It's eavily inspired from `oh-my-zsh <https://github.com/robbyrussell/oh-my-zsh>`_
+It's eavily inspired from `oh-my-zsh
+<https://github.com/robbyrussell/oh-my-zsh>`_
 
-Installation and upgrade
-========================
+Installation
+============
 
 Just run::
 
@@ -22,11 +23,12 @@ Commands
 
 Search on github::
 
-    $ oh-my-vim install [giturl]
-
-Installation::
-
     $ oh-my-vim search [-t] term
+
+Installation. You can use a git url or a ``requires.txt`` file/url wich
+contains git urls::
+
+    $ oh-my-vim install [giturl|requires.txt]
 
 Remove a bundle::
 
@@ -35,6 +37,10 @@ Remove a bundle::
 List installed packages::
 
     $ oh-my-vim list
+
+Generate a ``requires.txt`` file::
+
+    $ oh-my-vim list -u > requires.txt
 
 Upgrade bundles::
 

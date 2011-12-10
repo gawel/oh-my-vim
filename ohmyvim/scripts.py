@@ -1,9 +1,10 @@
 from os.path import join
 from os.path import isdir
 from os.path import isfile
+from os.path import abspath
 from os.path import basename
 from os.path import expanduser
-from urllib import urlretrieve
+from urllib import urlopen
 from subprocess import Popen
 from subprocess import PIPE
 import webbrowser
@@ -12,8 +13,6 @@ import argparse
 import shutil
 import sys
 import os
-
-
 
 
 class Manager(object):
@@ -39,7 +38,8 @@ class Manager(object):
                 fd.write('')
         if not isfile(join(self.ohmyvim, 'ohmyvim.vim')):
             with open(join(self.ohmyvim, 'ohmyvim.vim'), 'w') as fd:
-                fd.write('source %s\n' % join(self.runtime, 'vim-pathogen', 'autoload', 'pathogen.vim'))
+                fd.write('source %s\n' % join(self.runtime, 'vim-pathogen',
+                                                   'autoload', 'pathogen.vim'))
                 fd.write('call pathogen#runtime_append_all_bundles()\n')
                 fd.write('source %s\n' % join(self.ohmyvim, 'theme.vim'))
         source = ':source %s\n' % join(self.ohmyvim, 'ohmyvim.vim')
@@ -53,7 +53,7 @@ class Manager(object):
                 if source not in fd.read():
                     with open(expanduser('~/.vimrc'), 'a') as fd:
                         fd.write('\n" added by oh-my-zsh\n')
-                        fd.write('let g:ohmyvim="%s"\n' % os.path.abspath(sys.argv[0]))
+                        fd.write('let g:ohmyvim="%s"\n' % abspath(sys.argv[0]))
                         fd.write(source)
 
     def get_plugins(self):
@@ -73,7 +73,8 @@ class Manager(object):
         if args.theme_only:
             terms = 'theme%%20%s' % terms
         webbrowser.open_new(("https://github.com/search?"
-                            "langOverride=&repo=&start_value=1&type=Repositories&q=language%3Aviml%20" + terms))
+                            "langOverride=&repo=&start_value=1&"
+                            "type=Repositories&q=language%3Aviml%20") + terms)
 
     def list(self, args):
         for plugin, dirname, themes in self.get_plugins():
@@ -81,9 +82,15 @@ class Manager(object):
             p = Popen(['git', 'remote', '-v'], stdout=PIPE)
             p.wait()
             remote = p.stdout.read().split('\n')[0]
-            print '* %s (%s)' % (plugin, remote.split('\t')[1].split(' ')[0])
+            remote = remote.split('\t')[1].split(' ')[0]
+            if args.urls:
+                if plugin not in self.dependencies:
+                    print remote
+            else:
+                print '* %s (%s)' % (plugin, remote)
 
     def install_url(self, url):
+        url = url.strip()
         dependencies = []
         if '://github.com' in url and not url.endswith('.git'):
             url = url.replace('http://', 'https://').rstrip() + '.git'
@@ -99,7 +106,7 @@ class Manager(object):
                 Popen(['git', 'clone', url, dirname]).wait()
             if isfile(join(dirname, 'requires.txt')):
                 with open(join(dirname, 'requires.txt')) as fd:
-                    dependencies = [d.strip() for d in fd.readlines()]
+                    dependencies = [d for d in fd.readlines()]
         else:
             print '%s is not a git url' % url
         return dependencies
@@ -107,8 +114,17 @@ class Manager(object):
     def install(self, args):
         dependencies = set()
         for url in args.url:
-            for d in self.install_url(url):
-                dependencies.add(d)
+            if url.endswith('requires.txt'):
+                if isfile(url):
+                    with open(url) as fd:
+                        dependencies = [d for d in fd.readlines()]
+                elif url.startswith('http'):
+                    fd = urlopen(url)
+                    dependencies = [d for d in fd.readlines()]
+            else:
+                for d in self.install_url(url):
+                    if d.strip():
+                        dependencies.add(d)
         if dependencies:
             print 'Processing dependencies...'
             for url in dependencies:
@@ -147,8 +163,9 @@ class Manager(object):
                 p = Popen(['git', 'remote', '-v'], stdout=PIPE)
                 p.wait()
                 remote = p.stdout.read().split('\n')[0]
+                remote = remote.split('\t')[1].split(' ')[0]
             if themes:
-                print '* %s (%s)' % (plugin, remote.split('\t')[1].split(' ')[0])
+                print '* %s (%s)' % (plugin, remote)
                 print '\t- %s' % ', '.join(themes)
 
 
@@ -159,7 +176,7 @@ def main(*args):
     subparsers = parser.add_subparsers(help='sub-command help')
 
     p = subparsers.add_parser('list')
-    p.add_argument('-t', '--theme-only', action='store_true', default=False)
+    p.add_argument('-u', '--urls', action='store_true', default=False)
     p.set_defaults(action=manager.list)
 
     p = subparsers.add_parser('search')
