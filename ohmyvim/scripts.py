@@ -38,9 +38,9 @@ class Manager(object):
                 fd.write('')
         if not isfile(join(self.ohmyvim, 'ohmyvim.vim')):
             with open(join(self.ohmyvim, 'ohmyvim.vim'), 'w') as fd:
-                fd.write(':source %s\n' % join(self.runtime, 'vim-pathogen', 'autoload', 'pathogen.vim'))            
-                fd.write(':call pathogen#runtime_append_all_bundles()\n')
-                fd.write(':source %s\n' % join(self.ohmyvim, 'theme.vim'))
+                fd.write('source %s\n' % join(self.runtime, 'vim-pathogen', 'autoload', 'pathogen.vim'))            
+                fd.write('call pathogen#runtime_append_all_bundles()\n')
+                fd.write('source %s\n' % join(self.ohmyvim, 'theme.vim'))
         source = ':source %s\n' % join(self.ohmyvim, 'ohmyvim.vim')
         if not isfile(expanduser('~/.vimrc')):
             with open(expanduser('~/.vimrc'), 'w') as fd:
@@ -57,10 +57,6 @@ class Manager(object):
 
     
 
-    def search(self, args):
-        webbrowser.open_new(("https://github.com/search?"
-                            "langOverride=&q=language%3Aviml&repo=&start_value=1&type=Repositories"))
-
     def get_plugins(self):
         plugins = []
         for plugin in os.listdir(self.runtime):
@@ -72,6 +68,10 @@ class Manager(object):
                     themes = [t[:-4] for t in themes]
                 plugins.append((plugin, dirname, themes))
         return plugins
+
+    def search(self, args):
+        webbrowser.open_new(("https://github.com/search?"
+                            "langOverride=&q=language%3Aviml&repo=&start_value=1&type=Repositories"))
 
     def list(self, args):
         for plugin, dirname, themes in self.get_plugins():
