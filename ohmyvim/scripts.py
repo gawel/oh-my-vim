@@ -69,8 +69,11 @@ class Manager(object):
         return plugins
 
     def search(self, args):
+        terms = '%20'.join(args.term)
+        if args.theme_only:
+            terms = 'theme%%20%s' % terms
         webbrowser.open_new(("https://github.com/search?"
-                            "langOverride=&q=language%3Aviml&repo=&start_value=1&type=Repositories"))
+                            "langOverride=&repo=&start_value=1&type=Repositories&q=language%3Aviml%20" + terms))
 
     def list(self, args):
         for plugin, dirname, themes in self.get_plugins():
@@ -97,9 +100,10 @@ class Manager(object):
 
     def upgrade(self, args):
         for plugin, dirname, themes in self.get_plugins():
-            print 'Upgrading %s...' % plugin
-            os.chdir(dirname)
-            Popen(['git', 'pull']).wait()
+            if plugin in args.bundle or not args.bundle:
+                print 'Upgrading %s...' % plugin
+                os.chdir(dirname)
+                Popen(['git', 'pull']).wait()
            
 
     def remove(self, args):
@@ -143,6 +147,8 @@ def main(*args):
     p.set_defaults(action=manager.list)
 
     p = subparsers.add_parser('search')
+    p.add_argument('-t', '--theme-only', action='store_true', default=False)
+    p.add_argument('term', nargs='*', default='')
     p.set_defaults(action=manager.search)
 
     p = subparsers.add_parser('install', help='install a script or bundle')
@@ -150,6 +156,7 @@ def main(*args):
     p.set_defaults(action=manager.install)
 
     p = subparsers.add_parser('upgrade', help='upgrade bundles')
+    p.add_argument('bundle', nargs='*', default='')
     p.set_defaults(action=manager.upgrade)
 
     p = subparsers.add_parser('remove', help='remove a bundle')
