@@ -15,6 +15,7 @@ import os
 
 
 
+
 class Manager(object):
 
     runtime = expanduser('~/.vim/bundle')
@@ -54,8 +55,6 @@ class Manager(object):
                         fd.write('\n" added by oh-my-zsh\n')
                         fd.write('let g:ohmyvim="%s"\n' % os.path.abspath(sys.argv[0]))
                         fd.write(source)
-
-    
 
     def get_plugins(self):
         plugins = []
@@ -106,10 +105,10 @@ class Manager(object):
     def remove(self, args):
         for plugin, dirname, themes in self.get_plugins():
             if plugin in args.bundle:
-                if plugin in ('vim-pathogen',):
+                if plugin in self.dependencies:
                     print "Don't remove %s!" % plugin
-                print 'Removing %s...' % name
-                dirname = join(self.runtime, name)
+                print 'Removing %s...' % plugin
+                dirname = join(self.runtime, plugin)
                 if isdir(join(dirname, '.git')):
                     shutil.rmtree(dirname)
 
