@@ -1,1 +1,1 @@
-!command OmMyVimReload :source ~/.vim/autoload/omyvim.vim
+command! OmMyVimReload :source ~/.vim/ohmyvim/omyvim.vim

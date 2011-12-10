@@ -10,10 +10,9 @@ import webbrowser
 import subprocess
 import argparse
 import shutil
+import sys
 import os
 
-
-PATTHOGEN = 'https://github.com/tpope/vim-pathogen.git'
 
 
 class Manager(object):
@@ -22,13 +21,18 @@ class Manager(object):
     autoload = expanduser('~/.vim/autoload')
     ohmyvim = expanduser('~/.vim/ohmyvim')
 
+    dependencies = {
+        'vim-pathogen': 'https://github.com/tpope/vim-pathogen.git',
+        'oh-my-vim': 'https://github.com/gawel/oh-my-vim.git',
+      }
+
     def __init__(self):
         for dirname in (self.runtime, self.autoload, self.ohmyvim):
             if not isdir(dirname):
                 os.makedirs(dirname)
-        if not isdir(join(self.runtime, 'vim-pathogen')):
-            Popen(['git', 'clone', PATTHOGEN, join(self.runtime, 'vim-pathogen')]).wait()
-            #urlretrieve(OHMYVIM, join(self.autoload, '.vim'))
+        for name, url in self.dependencies.items():
+            if not isdir(join(self.runtime, name)):
+                Popen(['git', 'clone', url, join(self.runtime, name)]).wait()
         if not isfile(join(self.ohmyvim, 'theme.vim')):
             with open(join(self.ohmyvim, 'theme.vim'), 'w') as fd:
                 fd.write('')
@@ -37,9 +41,20 @@ class Manager(object):
                 fd.write(':source %s\n' % join(self.runtime, 'vim-pathogen', 'autoload', 'pathogen.vim'))            
                 fd.write(':call pathogen#runtime_append_all_bundles()\n')
                 fd.write(':source %s\n' % join(self.ohmyvim, 'theme.vim'))
-        if not isfile(join(self.autoload, 'ohmyvim.vim')):
-            with open(join(self.autoload, 'ohmyvim.vim'), 'w') as fd:
-                fd.write(':source %s\n' % join(self.ohmyvim, 'ohmyvim.vim'))
+        source = ':source %s\n' % join(self.ohmyvim, 'ohmyvim.vim')
+        if not isfile(expanduser('~/.vimrc')):
+            with open(expanduser('~/.vimrc'), 'w') as fd:
+                fd.write('\n" added by oh-my-zsh\n')
+                fd.write('let g:ohmyvim="%s"\n' % os.path.abspath(sys.argv[0]))
+                fd.write(source)
+        else:
+            with open(expanduser('~/.vimrc')) as fd:
+                if source not in fd.read():
+                    with open(expanduser('~/.vimrc'), 'a') as fd:
+                        fd.write('\n" added by oh-my-zsh\n')
+                        fd.write('let g:ohmyvim="%s"\n' % os.path.abspath(sys.argv[0]))
+                        fd.write(source)
+
     
 
     def search(self, args):
@@ -59,21 +74,12 @@ class Manager(object):
         return plugins
 
     def list(self, args):
-        print 'Bundles'
         for plugin, dirname, themes in self.get_plugins():
-            if isdir(join(dirname, '.git')):
-                os.chdir(dirname)
-                p = Popen(['git', 'remote', '-v'], stdout=PIPE)
-                p.wait()
-                remote = p.stdout.read().split('\n')[0]
-            if args.theme_only:
-                if themes:
-                    print '\t%s (%s)' % (plugin, remote.split('\t')[1].split(' ')[0])
-                    print '\t\tthemes: %s' % ', '.join(themes)
-            else:                
-                print '\t%s (%s)' % (plugin, remote.split('\t')[1].split(' ')[0])
-                if themes:
-                    print '\t\tthemes: %s' % ', '.join(themes)
+            os.chdir(dirname)
+            p = Popen(['git', 'remote', '-v'], stdout=PIPE)
+            p.wait()
+            remote = p.stdout.read().split('\n')[0]
+            print '* %s (%s)' % (plugin, remote.split('\t')[1].split(' ')[0])
 
     def install(self, args):
         for url in args.url:
@@ -107,13 +113,24 @@ class Manager(object):
                 if isdir(join(dirname, '.git')):
                     shutil.rmtree(dirname)
 
-    def activate_theme(self, args):
+    def theme(self, args):
         theme = args.theme
+        if theme:
+            for plugin, dirname, themes in self.get_plugins():
+                if theme in themes:
+                    print 'Activating %s theme...' % theme
+                    with open(join(self.ohmyvim, 'theme.vim'), 'w') as fd:
+                        fd.write(':colo %s\n' % theme)
+            return
         for plugin, dirname, themes in self.get_plugins():
-            if theme in themes:
-                print 'Activating %s...' % theme
-                with open(join(self.ohmyvim, 'theme.vim'), 'w') as fd:
-                    fd.write(':colo %s\n' % theme)
+            if isdir(join(dirname, '.git')):
+                os.chdir(dirname)
+                p = Popen(['git', 'remote', '-v'], stdout=PIPE)
+                p.wait()
+                remote = p.stdout.read().split('\n')[0]
+            if themes:
+                print '* %s (%s)' % (plugin, remote.split('\t')[1].split(' ')[0])
+                print '\t- %s' % ', '.join(themes)
 
 
 def main(*args):
@@ -140,15 +157,14 @@ def main(*args):
     p.add_argument('bundle', nargs='*', default='')
     p.set_defaults(action=manager.remove)
 
-    p = subparsers.add_parser('theme', help='activate a theme')
+    p = subparsers.add_parser('theme', help='list or activate a theme')
     p.add_argument('theme', nargs='?', default='')
-    p.set_defaults(action=manager.activate_theme)
+    p.set_defaults(action=manager.theme)
 
     if args:
         args = parser.parse_args(args)
     else:
         args = parser.parse_args()
-    print args
     args.action(args)
 
 
