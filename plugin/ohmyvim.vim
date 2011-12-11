@@ -5,10 +5,11 @@ command! -complete=custom,OhMyVimCmpl -nargs=+ OhMyVim :call OhMyVim("<args>")
 
 function! OhMyVim(args)
     let a:splitted = split(a:args, ' ')
-    echo system(g:ohmyvim.' '.a:args)
     if a:splitted[0] == 'theme' && len(a:splitted) > 1
         call pathogen#runtime_append_all_bundles()
         source ~/.vim/ohmyvim/theme.vim
+    else
+        echo system(g:ohmyvim.' '.a:args)
     endif
 endfunction
 
