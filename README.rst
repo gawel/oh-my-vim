@@ -9,6 +9,8 @@ It's eavily inspired from `oh-my-zsh
 Installation
 ============
 
+It's recommended to install ``oh-my-vim`` as a non root user.
+
 Just run::
 
     $ pip install oh-my-vim
@@ -18,6 +20,10 @@ Install from the repository::
     $ pip install -e "git+https://github.com/gawel/oh-my-vim.git#egg=oh-my-zsh"
 
 Add the ``--upgrade`` option for upgrading.
+
+If ``oh-my-vim`` is installed as root. You'll have to upgrade your user account::
+
+    $ oh-my-vim upgrade all
 
 Commands
 ========
