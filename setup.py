@@ -35,6 +35,7 @@ setup(name='oh-my-vim',
       install_requires=[
           # -*- Extra requirements: -*-
           'argparse',
+          'ConfigObject',
       ],
       entry_points="""
       # -*- Entry points: -*-

@@ -3,6 +3,7 @@ from os.path import isdir
 from os.path import isfile
 from os.path import basename
 from os.path import expanduser
+from ConfigObject import ConfigObject
 from urllib import urlopen
 from subprocess import Popen
 from subprocess import PIPE
@@ -26,42 +27,55 @@ source %(ohmyvim)s
 
 class Manager(object):
 
-    runtime = expanduser('~/.vim/bundle')
-    autoload = expanduser('~/.vim/autoload')
-    ohmyvim = expanduser('~/.vim/ohmyvim')
-
     dependencies = {
         'vim-pathogen': 'https://github.com/tpope/vim-pathogen.git',
         'oh-my-vim': 'https://github.com/gawel/oh-my-vim.git',
       }
 
     def __init__(self):
+        self.output = []
+
+        self.runtime = expanduser('~/.vim/bundle')
+        self.autoload = expanduser('~/.vim/autoload')
+        self.ohmyvim = expanduser('~/.vim/ohmyvim')
+
         for dirname in (self.runtime, self.autoload,
                         self.ohmyvim, expanduser('~/.vim/swp')):
             if not isdir(dirname):
                 os.makedirs(dirname)
+
         for name, url in self.dependencies.items():
             if not isdir(join(self.runtime, name)):
                 Popen(['git', 'clone', '-q', url,
                        join(self.runtime, name)]).wait()
+
         if not isfile(join(self.ohmyvim, 'theme.vim')):
             with open(join(self.ohmyvim, 'theme.vim'), 'w') as fd:
                 fd.write('')
+
         if not isfile(join(self.ohmyvim, 'ohmyvim.vim')):
             with open(join(self.ohmyvim, 'ohmyvim.vim'), 'w') as fd:
                 fd.write('source %s\n' % join(self.runtime, 'vim-pathogen',
                                                    'autoload', 'pathogen.vim'))
                 fd.write('call pathogen#runtime_append_all_bundles()\n')
                 fd.write('source %s\n' % join(self.ohmyvim, 'theme.vim'))
-        binary = os.path.abspath(sys.argv[0])
+
+        kw = dict(ohmyvim=join(self.ohmyvim, 'ohmyvim.vim'),
+                  binary=os.path.abspath(sys.argv[0]))
         if not isfile(expanduser('~/.vimrc')):
             with open(expanduser('~/.vimrc'), 'w') as fd:
-                fd.write(VIMRC % locals())
+                fd.write(VIMRC % kw)
         else:
             with open(expanduser('~/.vimrc')) as fd:
-                if binary not in fd.read():
+                if kw['binary'] not in fd.read():
                     with open(expanduser('~/.vimrc'), 'a') as fd:
-                        fd.write(VIMRC % locals())
+                        fd.write(VIMRC % kw)
+
+    def log(self, value, *args):
+        if args:
+            value = value % args
+        self.output.append(value)
+        print(value)
 
     def get_plugins(self):
         plugins = []
@@ -82,14 +96,18 @@ class Manager(object):
         if not terms:
             terms = ['language%3AVimL']
         terms = '%20'.join(terms)
-        webbrowser.open_new(("https://github.com/search?"
-                             "langOverride=&repo=&start_value=1&"
-                             "type=Repositories&language=VimL&q=") + terms)
+        url = ("https://github.com/search?"
+               "langOverride=&repo=&start_value=1&"
+               "type=Repositories&language=VimL&q=") + terms
+        if '__test__' not in os.environ:
+            webbrowser.open_new(url)
+        else:
+            self.log(url)
 
     def list(self, args):
         for plugin, dirname, themes in self.get_plugins():
-            if args.raw:
-                print plugin
+            if args.complete:
+                self.log(plugin)
             else:
                 os.chdir(dirname)
                 p = Popen(['git', 'remote', '-v'], stdout=PIPE)
@@ -98,9 +116,9 @@ class Manager(object):
                 remote = remote.split('\t')[1].split(' ')[0]
                 if args.urls:
                     if plugin not in self.dependencies:
-                        print remote
+                        self.log(remote)
                 else:
-                    print '* %s (%s)' % (plugin, remote)
+                    self.log('* %s (%s)', plugin, remote)
 
     def install_url(self, url):
         url = url.strip()
@@ -112,94 +130,90 @@ class Manager(object):
             name = basename(url)[:-4]
             dirname = join(self.runtime, name)
             if os.path.isdir(dirname):
-                print '%s already installed. Upgrading...' % name
+                self.log('%s already installed. Upgrading...', name)
                 os.chdir(dirname)
                 Popen(['git', 'pull', '-n']).wait()
             else:
-                print 'Installing bundle %s...' % name
+                self.log('Installing bundle %s...', name)
                 Popen(['git', 'clone', '-q', url, dirname]).wait()
             if isfile(join(dirname, 'requires.txt')):
                 with open(join(dirname, 'requires.txt')) as fd:
                     dependencies = [d for d in fd.readlines()]
         else:
-            print '%s is not a git url' % url
+            self.log('%s is not a git url', url)
         return dirname, dependencies
 
     def install(self, args):
-        dependencies = set()
-        for url in args.url:
-            if url.endswith('requires.txt'):
-                if isfile(url):
-                    with open(url) as fd:
+        filename = join(os.path.dirname(__file__), 'config.ini')
+        config = ConfigObject(filename=filename)
+        if args.complete:
+            for name in sorted(config.bundles.keys()):
+                self.log(name)
+            for name in sorted(config.themes.keys()):
+                self.log(name)
+        else:
+            dependencies = set()
+            for url in args.url:
+                url = config.bundles.get(url, url)
+                url = config.themes.get(url, url)
+                if url.endswith('.txt'):
+                    if isfile(url):
+                        with open(url) as fd:
+                            dependencies = [d for d in fd.readlines()]
+                    elif url.startswith('http'):
+                        fd = urlopen(url)
                         dependencies = [d for d in fd.readlines()]
-                elif url.startswith('http'):
-                    fd = urlopen(url)
-                    dependencies = [d for d in fd.readlines()]
-            else:
-                _, deps = self.install_url(url)
-                for d in deps:
-                    if d.strip():
-                        dependencies.add(d)
-        if dependencies:
-            print 'Processing dependencies...'
-            for url in dependencies:
-                self.install_url(url)
+                else:
+                    _, deps = self.install_url(url)
+                    for d in deps:
+                        if d.strip():
+                            dependencies.add(d)
+            if dependencies:
+                self.log('Processing dependencies...')
+                for url in dependencies:
+                    self.install_url(url)
 
     def upgrade(self, args):
-        if not args.bundle:
-            print 'all'
         for plugin, dirname, themes in self.get_plugins():
             if plugin in args.bundle or 'all' in args.bundle:
-                print 'Upgrading %s...' % plugin
+                self.log('Upgrading %s...', plugin)
                 os.chdir(dirname)
                 Popen(['git', 'pull', '-n']).wait()
-            elif args.raw:
-                print plugin
 
     def remove(self, args):
-        for plugin, dirname, themes in self.get_plugins():
-            if not args.bundle:
-                print plugin
-            elif plugin in args.bundle:
-                if plugin in self.dependencies:
-                    print "Don't remove %s!" % plugin
-                print 'Removing %s...' % plugin
-                dirname = join(self.runtime, plugin)
-                if isdir(join(dirname, '.git')):
-                    shutil.rmtree(dirname)
+        if args.bundle:
+            for plugin, dirname, themes in self.get_plugins():
+                if plugin in args.bundle:
+                    if plugin in self.dependencies:
+                        self.log("Don't remove %s!", plugin)
+                    self.log('Removing %s...', plugin)
+                    dirname = join(self.runtime, plugin)
+                    if isdir(join(dirname, '.git')):
+                        shutil.rmtree(dirname)
 
     def theme(self, args):
         theme = args.theme
         if theme:
-            if theme.startswith('http'):
-                theme_dir, _ = self.install_url(theme)
-                for plugin, dirname, themes in self.get_plugins():
-                    if theme_dir == dirname and len(themes) == 1:
-                        theme = themes[0]
-                        print 'Activate %s theme...' % theme
-                        with open(join(self.ohmyvim, 'theme.vim'), 'w') as fd:
-                            fd.write(':colo %s\n' % theme)
-            else:
-                for plugin, dirname, themes in self.get_plugins():
-                    if theme in themes:
-                        print 'Activate %s theme...' % theme
-                        with open(join(self.ohmyvim, 'theme.vim'), 'w') as fd:
-                            fd.write(':colo %s\n' % theme)
-            return
-        for plugin, dirname, themes in self.get_plugins():
-            if isdir(join(dirname, '.git')):
-                os.chdir(dirname)
-                p = Popen(['git', 'remote', '-v'], stdout=PIPE)
-                p.wait()
-                remote = p.stdout.read().split('\n')[0]
-                remote = remote.split('\t')[1].split(' ')[0]
-            if themes:
-                if args.raw:
-                    for theme in themes:
-                        print theme
-                else:
-                    print '* %s (%s)' % (plugin, remote)
-                    print '\t- %s' % ', '.join(themes)
+            for plugin, dirname, themes in self.get_plugins():
+                if theme in themes:
+                    self.log('Activate %s theme...', theme)
+                    with open(join(self.ohmyvim, 'theme.vim'), 'w') as fd:
+                        fd.write(':colo %s\n' % theme)
+        else:
+            for plugin, dirname, themes in self.get_plugins():
+                if isdir(join(dirname, '.git')):
+                    os.chdir(dirname)
+                    p = Popen(['git', 'remote', '-v'], stdout=PIPE)
+                    p.wait()
+                    remote = p.stdout.read().split('\n')[0]
+                    remote = remote.split('\t')[1].split(' ')[0]
+                if themes:
+                    if args.complete:
+                        for theme in themes:
+                            self.log(theme)
+                    else:
+                        self.log('* %s (%s)', plugin, remote)
+                        self.log('\t- %s', ', '.join(themes))
 
     def profiles(self, args):
         profiles = join(self.runtime, 'oh-my-vim', 'profiles')
@@ -214,9 +228,9 @@ class Manager(object):
                     if line.startswith('"'):
                         desc += line.strip(' "\n')
                 if desc:
-                    print '* %s - %s' % (name, desc)
+                    self.log('* %s - %s', name, desc)
                 else:
-                    print '* %s' % name
+                    self.log('* %s', name)
 
 
 def main(*args):
@@ -233,16 +247,16 @@ def main(*args):
     p.set_defaults(action=manager.search)
 
     p = subparsers.add_parser('list')
-    p.add_argument('--raw', action='store_true', default=False)
+    p.add_argument('--complete', action='store_true', default=False)
     p.add_argument('-u', '--urls', action='store_true', default=False)
     p.set_defaults(action=manager.list)
 
     p = subparsers.add_parser('install', help='install a script or bundle')
+    p.add_argument('--complete', action='store_true', default=False)
     p.add_argument('url', nargs='*', default='')
     p.set_defaults(action=manager.install)
 
     p = subparsers.add_parser('upgrade', help='upgrade bundles')
-    p.add_argument('--raw', action='store_true', default=False)
     p.add_argument('bundle', nargs='*', default='')
     p.set_defaults(action=manager.upgrade)
 
@@ -251,7 +265,7 @@ def main(*args):
     p.set_defaults(action=manager.remove)
 
     p = subparsers.add_parser('theme', help='list or activate a theme')
-    p.add_argument('--raw', action='store_true', default=False)
+    p.add_argument('--complete', action='store_true', default=False)
     p.add_argument('theme', nargs='?', default='')
     p.set_defaults(action=manager.theme)
 
@@ -262,4 +276,7 @@ def main(*args):
         args = parser.parse_args(args)
     else:
         args = parser.parse_args()
+
     args.action(args)
+
+    return manager.output
