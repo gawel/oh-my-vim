@@ -1,11 +1,7 @@
 from setuptools import setup, find_packages
 import sys, os
 
-if os.getuid() == 0:
-    sys.stderr.write('Please do not install me as root!\n')
-    sys.exit(-1)
-
-version = '0.1'
+version = '0.2'
 
 def read(*args):
     path = os.path.join(*args)
@@ -17,7 +13,7 @@ def read(*args):
 
 setup(name='oh-my-vim',
       version=version,
-      description="Vim manager",
+      description="Vim plugin manager and Vim related stuff",
       long_description=read('README.rst'),
       classifiers=[
           'Environment :: Console',
