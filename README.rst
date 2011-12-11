@@ -17,13 +17,14 @@ Install from the repository::
 
     $ pip install -e "git+https://github.com/gawel/oh-my-vim.git#egg=oh-my-zsh"
 
+Add the ``--upgrade`` option for upgrading.
 
 Commands
 ========
 
 Browse all VimL projects available on github in your favorite browser::
 
-    $ oh-my-vim search [-t] term
+    $ oh-my-vim search [-t] [term]
 
 Installation. You can use a git url or a ``requires.txt`` file/url wich
 contains git urls::
@@ -44,7 +45,7 @@ Generate a ``requires.txt`` file::
 
 Upgrade bundles::
 
-    $ oh-my-vim upgrade [bundle1|bundle2|...]
+    $ oh-my-vim upgrade [all|bundle1|bundle2|...]
 
 FAQ
 ===

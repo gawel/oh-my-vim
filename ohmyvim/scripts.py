@@ -9,7 +9,6 @@ from subprocess import Popen
 from subprocess import PIPE
 import webbrowser
 import subprocess
-import argparse
 import shutil
 import sys
 import os
@@ -76,12 +75,15 @@ class Manager(object):
         return plugins
 
     def search(self, args):
-        terms = '%20'.join(args.term)
+        terms = [t.strip() for t in args.term if t.strip()]
         if args.theme_only:
-            terms = 'theme%%20%s' % terms
+            terms.insert(0, 'colorschemes')
+        if not terms:
+            terms = ['language%3AVimL']
+        terms = '%20'.join(terms)
         webbrowser.open_new(("https://github.com/search?"
-                            "langOverride=&repo=&start_value=1&"
-                            "type=Repositories&q=language%3Aviml%20") + terms)
+                             "langOverride=&repo=&start_value=1&"
+                             "type=Repositories&language=VimL&q=") + terms)
 
     def list(self, args):
         for plugin, dirname, themes in self.get_plugins():
@@ -213,6 +215,8 @@ class Manager(object):
 
 
 def main(*args):
+    import argparse
+
     manager = Manager()
 
     parser = argparse.ArgumentParser(description='Oh my Vim!')

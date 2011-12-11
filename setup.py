@@ -1,6 +1,10 @@
 from setuptools import setup, find_packages
 import sys, os
 
+if os.getuid() == 0:
+    sys.stderr.write('Please do not install me as root!\n')
+    sys.exit(-1)
+
 version = '0.1'
 
 def read(*args):
@@ -40,3 +44,19 @@ setup(name='oh-my-vim',
       oh-my-vim = ohmyvim.scripts:main
       """,
       )
+
+def upgrade():
+    sys.path.insert(0, os.path.dirname(__file__))
+    class Args(object):
+        def __init__(self, dependencies):
+            self.bundle = dependencies
+    try:
+        from ohmyvim.scripts import Manager
+        manager = Manager()
+        manager.upgrade(Args(manager.dependencies.keys()))
+    except Exception:
+        sys.stderr.write('Auto upgrade failed. Please run:\n')
+        sys.stderr.write('    $ oh-my-vim upgrade\n')
+
+if 'install' in sys.argv or 'bdist_egg' in sys.argv:
+    upgrade()
