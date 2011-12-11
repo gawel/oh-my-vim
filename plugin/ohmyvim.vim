@@ -1,3 +1,4 @@
+
 " oh-my-vim related command / tools
 
 command! -complete=custom,OhMyVimCmpl -nargs=+ OhMyVim :call OhMyVim("<args>")
@@ -12,6 +13,7 @@ function! OhMyVim(args)
 endfunction
 
 function! OhMyVimCmpl(A,L,P)
+    " a lot of improvment can be done here...
     let a:splitted = split(a:L, ' ')
     if len(a:splitted) == 2
         let a:cmds='search ,upgrade ,list ,remove ,theme ,profiles ,install '
@@ -20,8 +22,9 @@ function! OhMyVimCmpl(A,L,P)
     if len(a:splitted) >= 3
         if a:splitted[1] == 'theme'
             return system(g:ohmyvim.' theme -l')
-        endif
-        if a:splitted[1] == 'remove'
+        elseif a:splitted[1] == 'upgrade'
+            return system(g:ohmyvim.' upgrade')
+        elseif a:splitted[1] == 'remove'
             return system('ls ~/.vim/bundle/')
         endif
         return "\n"
