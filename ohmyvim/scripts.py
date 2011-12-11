@@ -7,6 +7,7 @@ from os.path import expanduser
 from urllib import urlopen
 from subprocess import Popen
 from subprocess import PIPE
+from glob import glob
 import webbrowser
 import subprocess
 import shutil
@@ -203,19 +204,20 @@ class Manager(object):
 
     def profiles(self, args):
         profiles = join(self.runtime, 'oh-my-vim', 'profiles')
-        profiles = [join(profiles, p) for p in os.listdir(profiles)]
+        profiles = glob(join(profiles, '*.vim'))
 
         for profile in sorted(profiles):
             name = basename(profile)[:-4]
-            desc = ''
-            with open(profile) as fd:
-                line = fd.readline()
-                if line.startswith('"'):
-                    desc += line.strip(' "\n')
-            if desc:
-                print '* %s - %s' % (name, desc)
-            else:
-                print '* %s' % name
+            if not name.startswith('.'):
+                desc = ''
+                with open(profile) as fd:
+                    line = fd.readline()
+                    if line.startswith('"'):
+                        desc += line.strip(' "\n')
+                if desc:
+                    print '* %s - %s' % (name, desc)
+                else:
+                    print '* %s' % name
 
 
 def main(*args):

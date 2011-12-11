@@ -13,3 +13,4 @@ set shiftwidth=4
 set visualbell t_vb=
 set ignorecase smartcase
 set statusline=%F%m%r%h%w\ format=%{&ff}\ type=%Y\ x=%l\ y=%v\ %p%%\ %{strftime(\"%d/%m/%y\ -\%H:%M\")}
+

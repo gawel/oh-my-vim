@@ -38,6 +38,7 @@ setup(name='oh-my-vim',
       # -*- Entry points: -*-
       [console_scripts]
       oh-my-vim = ohmyvim.scripts:main
+      fpcli = ohmyvim.fpcli:main
       """,
       )
 
