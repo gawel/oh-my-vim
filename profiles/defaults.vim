@@ -16,7 +16,7 @@ set shiftwidth=4
 set ignorecase smartcase
 
 set wildmenu
-set wildmode=list:full
+set wildmode=longest:full
 
 set statusline=%F%m%r%h%w\ format=%{&ff}\ type=%Y\ x=%l\ y=%v\ %p%%\ %{strftime(\"%d/%m/%y\ -\%H:%M\")}
 
