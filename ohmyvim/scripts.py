@@ -87,16 +87,19 @@ class Manager(object):
 
     def list(self, args):
         for plugin, dirname, themes in self.get_plugins():
-            os.chdir(dirname)
-            p = Popen(['git', 'remote', '-v'], stdout=PIPE)
-            p.wait()
-            remote = p.stdout.read().split('\n')[0]
-            remote = remote.split('\t')[1].split(' ')[0]
-            if args.urls:
-                if plugin not in self.dependencies:
-                    print remote
+            if args.raw:
+                print plugin
             else:
-                print '* %s (%s)' % (plugin, remote)
+                os.chdir(dirname)
+                p = Popen(['git', 'remote', '-v'], stdout=PIPE)
+                p.wait()
+                remote = p.stdout.read().split('\n')[0]
+                remote = remote.split('\t')[1].split(' ')[0]
+                if args.urls:
+                    if plugin not in self.dependencies:
+                        print remote
+                else:
+                    print '* %s (%s)' % (plugin, remote)
 
     def install_url(self, url):
         url = url.strip()
@@ -148,7 +151,7 @@ class Manager(object):
                 print 'Upgrading %s...' % plugin
                 os.chdir(dirname)
                 Popen(['git', 'pull']).wait()
-            elif not args.bundle:
+            elif args.raw:
                 print plugin
 
 
@@ -190,7 +193,7 @@ class Manager(object):
                 remote = p.stdout.read().split('\n')[0]
                 remote = remote.split('\t')[1].split(' ')[0]
             if themes:
-                if args.list:
+                if args.raw:
                     for theme in themes:
                         print theme
                 else:
@@ -228,6 +231,7 @@ def main(*args):
     p.set_defaults(action=manager.search)
 
     p = subparsers.add_parser('list')
+    p.add_argument('--raw', action='store_true', default=False)
     p.add_argument('-u', '--urls', action='store_true', default=False)
     p.set_defaults(action=manager.list)
 
@@ -236,6 +240,7 @@ def main(*args):
     p.set_defaults(action=manager.install)
 
     p = subparsers.add_parser('upgrade', help='upgrade bundles')
+    p.add_argument('--raw', action='store_true', default=False)
     p.add_argument('bundle', nargs='*', default='')
     p.set_defaults(action=manager.upgrade)
 
@@ -244,8 +249,8 @@ def main(*args):
     p.set_defaults(action=manager.remove)
 
     p = subparsers.add_parser('theme', help='list or activate a theme')
+    p.add_argument('--raw', action='store_true', default=False)
     p.add_argument('theme', nargs='?', default='')
-    p.add_argument('-l', '--list', action='store_true', default=False)
     p.set_defaults(action=manager.theme)
 
     p = subparsers.add_parser('profiles', help='list all available profiles')

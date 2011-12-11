@@ -16,15 +16,22 @@ endfunction
 function! OhMyVimCmpl(A,L,P)
     " a lot of improvment can be done here...
     let a:splitted = split(a:L, ' ')
+    let a:cmds=sort(split('search,upgrade,list,remove,theme,profiles,install', ','))
     if len(a:splitted) == 2
-        let a:cmds='search ,upgrade ,list ,remove ,theme ,profiles ,install '
-        return join(sort(split(a:cmds, ',')), "\n")
+        for cmd in a:cmds
+            if cmd == a:splitted[1]
+                let a:splitted = a:splitted + [3]
+            endif
+        endfor
+        if len(a:splitted) == 2
+            return join(a:cmds, "\n")
+        endif
     endif
     if len(a:splitted) >= 3
         if a:splitted[1] == 'theme'
-            return system(g:ohmyvim.' theme -l')
+            return system(g:ohmyvim.' theme --raw')
         elseif a:splitted[1] == 'upgrade'
-            return system(g:ohmyvim.' upgrade')
+            return system('ls ~/.vim/bundle/')
         elseif a:splitted[1] == 'remove'
             return system('ls ~/.vim/bundle/')
         endif
