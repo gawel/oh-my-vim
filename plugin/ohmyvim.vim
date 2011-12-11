@@ -1,11 +1,24 @@
-if exists("b:loaded_py_plugin")
-  finish
+" oh-my-vim related command / tools
+
+command! -complete=custom,OhMyVimCmpl -nargs=+ OhMyVim :call OhMyVim("<args>")
+
+function! OhMyVim(args)
+    echo system(g:ohmyvim.' '.a:args)
+endfunction
+
+function! OhMyVimCmpl(A,L,P)
+    let a:cmds='search,upgrade,list,remove,theme,profiles,install'
+    return join(sort(split(a:cmds, ',')), "\n")
+endfunction
+
+function! OhMyVimProfiles()
+    for profile in g:profiles
+        let a:filename="~/.vim/bundle/oh-my-vim/profile/".profile.".vim"
+        execute("source ".a:filename)
+    endfor
+endfunction
+
+if exists("g:profiles")
+    call OhMyVimProfiles()
 endif
-let b:loaded_py_plugin = 1
 
-syntax enable
-
-command! -nargs=0 OhMyVimReload :source ~/.vim/ohmyvim/ohmyvim.vim
-
-
-command! -nargs=+ OhMyVim :echo system(g:ohmyvim.' <args>')
