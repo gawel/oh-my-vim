@@ -4,6 +4,7 @@
 command! -complete=custom,OhMyVimCmpl -nargs=+ OhMyVim :call OhMyVim("<args>")
 
 function! OhMyVim(args)
+    echo ''
     let a:splitted = split(a:args, ' ')
     if a:splitted[0] == 'theme' && len(a:splitted) > 1
         call pathogen#runtime_append_all_bundles()
@@ -17,9 +18,11 @@ function! OhMyVimCmpl(A,L,P)
     " a lot of improvment can be done here...
     let a:splitted = split(a:L, ' ')
     let a:cmds=sort(split('search,upgrade,list,remove,theme,profiles,install', ','))
-    if len(a:splitted) == 2
-        for cmd in a:cmds
-            if cmd == a:splitted[1]
+    if len(a:splitted) == 1
+        return join(a:cmds, "\n")
+    elseif len(a:splitted) == 2
+        for a:cmd in a:cmds
+            if a:cmd == a:splitted[1]
                 let a:splitted = a:splitted + [3]
             endif
         endfor

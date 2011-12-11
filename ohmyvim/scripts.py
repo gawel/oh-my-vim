@@ -41,7 +41,8 @@ class Manager(object):
                 os.makedirs(dirname)
         for name, url in self.dependencies.items():
             if not isdir(join(self.runtime, name)):
-                Popen(['git', 'clone', url, join(self.runtime, name)]).wait()
+                Popen(['git', 'clone', '-q', url,
+                       join(self.runtime, name)]).wait()
         if not isfile(join(self.ohmyvim, 'theme.vim')):
             with open(join(self.ohmyvim, 'theme.vim'), 'w') as fd:
                 fd.write('')
@@ -113,10 +114,10 @@ class Manager(object):
             if os.path.isdir(dirname):
                 print '%s already installed. Upgrading...' % name
                 os.chdir(dirname)
-                Popen(['git', 'pull']).wait()
+                Popen(['git', 'pull', '-n']).wait()
             else:
                 print 'Installing bundle %s...' % name
-                Popen(['git', 'clone', url, dirname]).wait()
+                Popen(['git', 'clone', '-q', url, dirname]).wait()
             if isfile(join(dirname, 'requires.txt')):
                 with open(join(dirname, 'requires.txt')) as fd:
                     dependencies = [d for d in fd.readlines()]
@@ -150,7 +151,7 @@ class Manager(object):
             if plugin in args.bundle or 'all' in args.bundle:
                 print 'Upgrading %s...' % plugin
                 os.chdir(dirname)
-                Popen(['git', 'pull']).wait()
+                Popen(['git', 'pull', '-n']).wait()
             elif args.raw:
                 print plugin
 
