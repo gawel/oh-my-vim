@@ -25,6 +25,12 @@ If ``oh-my-vim`` is installed as root. You'll have to upgrade your user account:
 
     $ oh-my-vim upgrade all
 
+Have a look at you ``~/.vimrc``::
+
+    $ vim ~/.vimrc
+
+And select your favorites profiles.
+
 Commands
 ========
 
