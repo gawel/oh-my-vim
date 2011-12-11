@@ -51,7 +51,7 @@ FAQ
 
 **Can I use oh-my-vim from Vim ?**
 
-Yes. Just use ``:OhMyVim <args>``
+Yes, and you should. You'll get some completion. Just use ``:OhMyVim <args>``
 
 **This is a great project. Can I offer you a beer ?**
 

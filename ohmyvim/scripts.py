@@ -139,11 +139,15 @@ class Manager(object):
                  self.install_url(url)
 
     def upgrade(self, args):
+        if not args.bundle:
+            print 'all'
         for plugin, dirname, themes in self.get_plugins():
-            if plugin in args.bundle or not args.bundle:
+            if plugin in args.bundle or 'all' in args.bundle:
                 print 'Upgrading %s...' % plugin
                 os.chdir(dirname)
                 Popen(['git', 'pull']).wait()
+            elif not args.bundle:
+                print plugin
 
 
     def remove(self, args):
