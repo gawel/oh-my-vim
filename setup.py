@@ -1,7 +1,9 @@
 from setuptools import setup, find_packages
-import sys, os
+import sys
+import os
 
 version = '0.2'
+
 
 def read(*args):
     path = os.path.join(*args)
@@ -42,8 +44,10 @@ setup(name='oh-my-vim',
       """,
       )
 
+
 def upgrade():
     sys.path.insert(0, os.path.dirname(__file__))
+
     class Args(object):
         def __init__(self, dependencies):
             self.bundle = dependencies
@@ -52,7 +56,7 @@ def upgrade():
         manager = Manager()
         manager.upgrade(Args(manager.dependencies.keys()))
     except Exception:
-        sys.stderr.write('Auto upgrade failed. Please run:\n')
+        sys.stderr.write('\nAuto upgrade failed. Please run:\n')
         sys.stderr.write('    $ oh-my-vim upgrade\n')
 
 if 'install' in sys.argv or 'bdist_egg' in sys.argv:

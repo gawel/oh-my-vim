@@ -1,7 +1,6 @@
 from os.path import join
 from os.path import isdir
 from os.path import isfile
-from os.path import abspath
 from os.path import basename
 from os.path import expanduser
 from urllib import urlopen
@@ -9,7 +8,6 @@ from subprocess import Popen
 from subprocess import PIPE
 from glob import glob
 import webbrowser
-import subprocess
 import shutil
 import sys
 import os
@@ -25,6 +23,7 @@ let profiles = ['defaults']
 source %(ohmyvim)s
 '''
 
+
 class Manager(object):
 
     runtime = expanduser('~/.vim/bundle')
@@ -37,7 +36,8 @@ class Manager(object):
       }
 
     def __init__(self):
-        for dirname in (self.runtime, self.autoload, self.ohmyvim):
+        for dirname in (self.runtime, self.autoload,
+                        self.ohmyvim, expanduser('~/.vim/swp')):
             if not isdir(dirname):
                 os.makedirs(dirname)
         for name, url in self.dependencies.items():
@@ -53,7 +53,6 @@ class Manager(object):
                                                    'autoload', 'pathogen.vim'))
                 fd.write('call pathogen#runtime_append_all_bundles()\n')
                 fd.write('source %s\n' % join(self.ohmyvim, 'theme.vim'))
-        ohmyvim = join(self.ohmyvim, 'ohmyvim.vim')
         binary = os.path.abspath(sys.argv[0])
         if not isfile(expanduser('~/.vimrc')):
             with open(expanduser('~/.vimrc'), 'w') as fd:
@@ -137,13 +136,14 @@ class Manager(object):
                     fd = urlopen(url)
                     dependencies = [d for d in fd.readlines()]
             else:
-                for _, d in self.install_url(url):
+                _, deps = self.install_url(url)
+                for d in deps:
                     if d.strip():
                         dependencies.add(d)
         if dependencies:
             print 'Processing dependencies...'
             for url in dependencies:
-                 self.install_url(url)
+                self.install_url(url)
 
     def upgrade(self, args):
         if not args.bundle:
@@ -155,7 +155,6 @@ class Manager(object):
                 Popen(['git', 'pull', '-n']).wait()
             elif args.raw:
                 print plugin
-
 
     def remove(self, args):
         for plugin, dirname, themes in self.get_plugins():
@@ -264,5 +263,3 @@ def main(*args):
     else:
         args = parser.parse_args()
     args.action(args)
-
-
