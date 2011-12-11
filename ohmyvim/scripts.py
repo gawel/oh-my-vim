@@ -148,7 +148,9 @@ class Manager(object):
 
     def remove(self, args):
         for plugin, dirname, themes in self.get_plugins():
-            if plugin in args.bundle:
+            if not args.bundle:
+                print plugin
+            elif plugin in args.bundle:
                 if plugin in self.dependencies:
                     print "Don't remove %s!" % plugin
                 print 'Removing %s...' % plugin
@@ -182,8 +184,12 @@ class Manager(object):
                 remote = p.stdout.read().split('\n')[0]
                 remote = remote.split('\t')[1].split(' ')[0]
             if themes:
-                print '* %s (%s)' % (plugin, remote)
-                print '\t- %s' % ', '.join(themes)
+                if args.list:
+                    for theme in themes:
+                        print theme
+                else:
+                    print '* %s (%s)' % (plugin, remote)
+                    print '\t- %s' % ', '.join(themes)
 
     def profiles(self, args):
         profiles = join(self.runtime, 'oh-my-vim', 'profiles')
@@ -231,6 +237,7 @@ def main(*args):
 
     p = subparsers.add_parser('theme', help='list or activate a theme')
     p.add_argument('theme', nargs='?', default='')
+    p.add_argument('-l', '--list', action='store_true', default=False)
     p.set_defaults(action=manager.theme)
 
     p = subparsers.add_parser('profiles', help='list all available profiles')
