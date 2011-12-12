@@ -79,3 +79,8 @@ Sure.
 
 No. But you can. Fork the repository and submit a pull request.
 
+**I have a cool plugin and I want to add it to oh-my-vim-registry**
+
+Submit a pull request after adding it to the `registry
+<https://github.com/gawel/oh-my-vim/blob/master/ohmyvim/config.ini>`_
+

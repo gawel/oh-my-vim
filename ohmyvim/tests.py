@@ -58,7 +58,7 @@ class TestOhMyVim(unittest.TestCase):
         resp = self.main('profiles')
         self.assertIn('* defaults - some defaults settings', resp)
 
-        resp = self.main('install --complete')
+        resp = self.main('install --raw')
         self.assertIn('github-theme', resp)
 
         self.main('install')
@@ -72,8 +72,17 @@ class TestOhMyVim(unittest.TestCase):
         resp = self.main('install %s' % self.requires)
         self.assertIn('github-theme already installed.', resp)
 
-        resp = self.main('list --complete')
+        resp = self.main(
+                'install scrooloose/nerdtree')
+        self.assertIn('Installing nerdtree...', resp)
+
+        resp = self.main(
+                'install hg+https://bitbucket.org/sjl/gundo.vim')
+        self.assertIn('Installing gundo.vim...', resp)
+
+        resp = self.main('list --raw')
         self.assertIn('github-theme', resp)
+        self.assertIn('gundo.vim', resp)
 
         resp = self.main('list')
         self.assertIn(
@@ -84,7 +93,7 @@ class TestOhMyVim(unittest.TestCase):
         self.assertIn('git+https://github.com/vim-scripts/github-theme.git',
                       resp)
 
-        resp = self.main('theme --complete')
+        resp = self.main('theme --raw')
         self.assertIn('github', resp)
 
         resp = self.main('theme')
@@ -101,3 +110,7 @@ class TestOhMyVim(unittest.TestCase):
 
         resp = self.main('upgrade oh-my-vim')
         self.assertIn('Upgrading oh-my-vim...', resp)
+
+        resp = self.main('info vim-IPython')
+        self.assertIn('https://github.com/vim-scripts/vim-ipython#readme',
+                      resp)

@@ -10,6 +10,7 @@ from subprocess import PIPE
 from glob import glob
 import webbrowser
 import shutil
+import json
 import sys
 import os
 
@@ -84,13 +85,18 @@ class Bundle(object):
         return set()
 
     @classmethod
-    def install(cls, manager, url):
+    def resolve_url(self, url):
         filename = join(os.path.dirname(__file__), 'config.ini')
         config = ConfigObject(filename=filename)
 
         url = url.strip()
-        url = config.bundles.get(url, url)
-        url = config.themes.get(url, url)
+        url = config.bundles.get(url.lower(), url)
+        url = config.vimscripts.get(url.lower(), url)
+        return url
+
+    @classmethod
+    def install(cls, manager, url):
+        url = cls.resolve_url(url)
 
         use_hg = False
         use_git = False
@@ -101,6 +107,8 @@ class Bundle(object):
         elif url.startswith('git+'):
             use_git = True
             url = url[4:]
+        elif len(url.split('/')) == 2:
+            url = 'https://github.com/%s/%s.git' % tuple(url.split('/'))
         elif '://github.com' in url and not url.endswith('.git'):
             url = url.replace('http://', 'https://').rstrip() + '.git'
 
@@ -124,8 +132,7 @@ class Bundle(object):
         if dirname and isdir(dirname):
             manager.log('%s already installed.', name)
         elif cmd:
-            manager.log('Installing bundle %s...', name)
-            print cmd
+            manager.log('Installing %s...', name)
             Popen(cmd).wait()
             b = cls(manager, dirname)
             return b
@@ -211,9 +218,19 @@ class Manager(object):
         else:
             self.log(url)
 
+    def info(self, args):
+        url = Bundle.resolve_url(args.bundle)
+        if url.endswith('.git'):
+            url = url[:-4]
+        url += '#readme'
+        if '__ohmyvim_test__' not in os.environ:
+            webbrowser.open_new(url)
+        else:
+            self.log(url)
+
     def list(self, args):
         for b in self.get_bundles():
-            if args.complete:
+            if args.raw:
                 self.log(b.name)
             else:
                 if args.urls:
@@ -228,10 +245,10 @@ class Manager(object):
     def install(self, args):
         filename = join(os.path.dirname(__file__), 'config.ini')
         config = ConfigObject(filename=filename)
-        if args.complete:
+        if args.raw:
             for name in sorted(config.bundles.keys()):
                 self.log(name)
-            for name in sorted(config.themes.keys()):
+            for name in sorted(config.vimscripts.keys()):
                 self.log(name)
         else:
             dependencies = set()
@@ -281,7 +298,7 @@ class Manager(object):
             for b in self.get_bundles():
                 themes = b.themes
                 if themes:
-                    if args.complete:
+                    if args.raw:
                         for theme in themes:
                             self.log(theme)
                     else:
@@ -319,13 +336,18 @@ def main(*args):
     p.add_argument('term', nargs='*', default='')
     p.set_defaults(action=manager.search)
 
+    p = subparsers.add_parser('info',
+                              help='try to open the web page of the bundle')
+    p.add_argument('bundle', default='')
+    p.set_defaults(action=manager.info)
+
     p = subparsers.add_parser('list')
-    p.add_argument('--complete', action='store_true', default=False)
+    p.add_argument('--raw', action='store_true', default=False)
     p.add_argument('-u', '--urls', action='store_true', default=False)
     p.set_defaults(action=manager.list)
 
     p = subparsers.add_parser('install', help='install a script or bundle')
-    p.add_argument('--complete', action='store_true', default=False)
+    p.add_argument('--raw', action='store_true', default=False)
     p.add_argument('url', nargs='*', default='')
     p.set_defaults(action=manager.install)
 
@@ -338,7 +360,7 @@ def main(*args):
     p.set_defaults(action=manager.remove)
 
     p = subparsers.add_parser('theme', help='list or activate a theme')
-    p.add_argument('--complete', action='store_true', default=False)
+    p.add_argument('--raw', action='store_true', default=False)
     p.add_argument('theme', nargs='?', default='')
     p.set_defaults(action=manager.theme)
 
@@ -353,3 +375,20 @@ def main(*args):
     args.action(args)
 
     return manager.output
+
+
+def update_registry():
+    vimscripts = {}
+    links = 'https://api.github.com/users/vim-scripts/repos; rel="next"'
+    while 'rel="next"' in links:
+        url = links.split(';')[0].strip(' <>')
+        print('Loading %s...' % url)
+        resp = urlopen(url)
+        repos = json.loads(resp.read())
+        vimscripts.update([(r['name'], r['clone_url']) for r in repos])
+        links = resp.headers.get('Link', '')
+
+    filename = join(os.path.dirname(__file__), 'config.ini')
+    config = ConfigObject(filename=filename)
+    config.vimscripts = vimscripts
+    config.write()

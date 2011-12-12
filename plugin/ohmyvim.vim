@@ -32,13 +32,13 @@ function! OhMyVimCmpl(A,L,P)
     endif
     if len(a:splitted) >= 3
         if a:splitted[1] == 'theme'
-            return system(g:ohmyvim.' theme --complete')
+            return system(g:ohmyvim.' theme --raw')
         elseif a:splitted[1] == 'install'
-            return system(g:ohmyvim.' install --complete')
+            return system(g:ohmyvim.' install --raw')
         elseif a:splitted[1] == 'upgrade'
-            return system(g:ohmyvim.' list --complete')
+            return system(g:ohmyvim.' list --raw')
         elseif a:splitted[1] == 'remove'
-            return system(g:ohmyvim.' list --complete')
+            return system(g:ohmyvim.' list --raw')
         endif
     endif
     return "\n"
