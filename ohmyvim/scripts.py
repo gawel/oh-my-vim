@@ -15,13 +15,20 @@ import os
 
 VIMRC = '''
 " added by oh-my-vim
-let g:ohmyvim="%(binary)s"
+
+" path to oh-my-vim binary (if you are using a virtualenv)
+" let g:ohmyvim="%(binary)s"
 
 " Use :OhMyVim profiles to list all available profiles
 let profiles = ['defaults']
 
 " load oh-my-vim
 source %(ohmyvim)s
+
+" end of oh-my-vim required stuff
+
+" put your custom stuff bellow
+
 '''
 
 
@@ -53,21 +60,22 @@ class Manager(object):
             with open(join(self.ohmyvim, 'theme.vim'), 'w') as fd:
                 fd.write('')
 
-        if not isfile(join(self.ohmyvim, 'ohmyvim.vim')):
-            with open(join(self.ohmyvim, 'ohmyvim.vim'), 'w') as fd:
+        ohmyvim = join(self.ohmyvim, 'ohmyvim.vim')
+        if not isfile(ohmyvim):
+            with open(ohmyvim, 'w') as fd:
                 fd.write('source %s\n' % join(self.runtime, 'vim-pathogen',
                                                    'autoload', 'pathogen.vim'))
                 fd.write('call pathogen#runtime_append_all_bundles()\n')
                 fd.write('source %s\n' % join(self.ohmyvim, 'theme.vim'))
 
-        kw = dict(ohmyvim=join(self.ohmyvim, 'ohmyvim.vim'),
+        kw = dict(ohmyvim=ohmyvim,
                   binary=os.path.abspath(sys.argv[0]))
         if not isfile(expanduser('~/.vimrc')):
             with open(expanduser('~/.vimrc'), 'w') as fd:
                 fd.write(VIMRC % kw)
         else:
             with open(expanduser('~/.vimrc')) as fd:
-                if kw['binary'] not in fd.read():
+                if ohmyvim not in fd.read():
                     with open(expanduser('~/.vimrc'), 'a') as fd:
                         fd.write(VIMRC % kw)
 
@@ -75,7 +83,8 @@ class Manager(object):
         if args:
             value = value % args
         self.output.append(value)
-        print(value)
+        sys.stdout.write(value + '\n')
+        sys.stdout.flush()
 
     def get_plugins(self):
         plugins = []
@@ -132,7 +141,7 @@ class Manager(object):
             if os.path.isdir(dirname):
                 self.log('%s already installed. Upgrading...', name)
                 os.chdir(dirname)
-                Popen(['git', 'pull', '-n']).wait()
+                Popen(['git', 'pull', '-qn']).wait()
             else:
                 self.log('Installing bundle %s...', name)
                 Popen(['git', 'clone', '-q', url, dirname]).wait()
@@ -175,10 +184,10 @@ class Manager(object):
 
     def upgrade(self, args):
         for plugin, dirname, themes in self.get_plugins():
-            if plugin in args.bundle or 'all' in args.bundle:
+            if plugin in args.bundle or len(args.bundle) == 0:
                 self.log('Upgrading %s...', plugin)
                 os.chdir(dirname)
-                Popen(['git', 'pull', '-n']).wait()
+                Popen(['git', 'pull', '-qn']).wait()
 
     def remove(self, args):
         if args.bundle:

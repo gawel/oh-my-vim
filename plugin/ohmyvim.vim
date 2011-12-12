@@ -54,3 +54,8 @@ if exists("g:profiles")
     call OhMyVimProfiles()
 endif
 
+if exists(g:ohmyvim) == 0
+    if executable('oh-my-vim')
+        let g:ohmyvim = 'oh-my-vim'
+    endif
+endif

@@ -50,12 +50,17 @@ def upgrade():
     sys.path.insert(0, os.path.dirname(__file__))
 
     class Args(object):
-        def __init__(self, dependencies):
+        def __init__(self, dependencies=[]):
             self.bundle = dependencies
+
     try:
         from ohmyvim.scripts import Manager
         manager = Manager()
-        manager.upgrade(Args(manager.dependencies.keys()))
+        manager.log('=' * 80)
+        manager.log('oh-my-vim is upgrading. Please wait...')
+        manager.log('=' * 80)
+        manager.upgrade(Args())
+        manager.log('=' * 80)
     except Exception:
         sys.stderr.write('\nAuto upgrade failed. Please run:\n')
         sys.stderr.write('    $ oh-my-vim upgrade\n')
