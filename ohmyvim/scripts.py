@@ -16,8 +16,8 @@ import os
 VIMRC = '''
 " added by oh-my-vim
 
-" path to oh-my-vim binary (if you are using a virtualenv)
-" let g:ohmyvim="%(binary)s"
+" path to oh-my-vim binary (take care of it if you are using a virtualenv)
+let g:ohmyvim="%(binary)s"
 
 " Use :OhMyVim profiles to list all available profiles
 let profiles = ['defaults']
@@ -30,6 +30,105 @@ source %(ohmyvim)s
 " put your custom stuff bellow
 
 '''
+
+
+class Bundle(object):
+
+    def __init__(self, manager, dirname):
+        self.manager = manager
+        self.dirname = dirname
+        self.name = basename(dirname)
+        self.use_git = isdir(join(dirname, '.git'))
+        self.use_hg = isdir(join(dirname, '.hg'))
+        self.valid = self.use_hg or self.use_git
+
+    def log(self, *args):
+        self.manager.log(*args)
+
+    @property
+    def themes(self):
+        themes = []
+        if isdir(join(self.dirname, 'colors')):
+            themes = os.listdir(join(self.dirname, 'colors'))
+            themes = [t[:-4] for t in themes]
+        return themes
+
+    @property
+    def remote(self):
+        os.chdir(self.dirname)
+        if self.use_git:
+            p = Popen(['git', 'remote', '-v'], stdout=PIPE)
+            p.wait()
+            remote = p.stdout.read().split('\n')[0]
+            remote = remote.split('\t')[1].split(' ')[0]
+            return remote
+        elif self.use_hg:
+            p = Popen(['hg', 'path'], stdout=PIPE)
+            p.wait()
+            remote = p.stdout.read().split('\n')[0]
+            remote = remote.split(' = ')[1].strip()
+            return remote
+
+    def upgrade(self):
+        if self.use_git:
+            p = Popen(['git', 'pull', '-qn'], stdout=PIPE)
+        elif self.use_hg:
+            p = Popen(['hg', 'pull', '-qu'], stdout=PIPE)
+        p.wait()
+
+    @property
+    def dependencies(self):
+        if isfile(join(self.dirname, 'requires.txt')):
+            with open(join(self.dirname, 'requires.txt')) as fd:
+                return set([d.strip() for d in fd.readlines() if d.strip()])
+        return set()
+
+    @classmethod
+    def install(cls, manager, url):
+        filename = join(os.path.dirname(__file__), 'config.ini')
+        config = ConfigObject(filename=filename)
+
+        url = url.strip()
+        url = config.bundles.get(url, url)
+        url = config.themes.get(url, url)
+
+        use_hg = False
+        use_git = False
+
+        if url.startswith('hg+'):
+            use_hg = True
+            url = url[3:]
+        elif url.startswith('git+'):
+            use_git = True
+            url = url[4:]
+        elif '://github.com' in url and not url.endswith('.git'):
+            url = url.replace('http://', 'https://').rstrip() + '.git'
+
+        if url.endswith('.git'):
+            use_git = True
+            use_hg = False
+
+        dirname = cmd = None
+
+        if use_git:
+            name = basename(url)[:-4]
+            dirname = join(manager.runtime, name)
+            cmd = ['git', 'clone', '-q', url, dirname]
+        elif use_hg:
+            name = basename(url.strip('/'))
+            dirname = join(manager.runtime, name)
+            cmd = ['hg', 'clone', '-q', url, dirname]
+        else:
+            manager.log('%s is not a valid url', url)
+
+        if dirname and isdir(dirname):
+            manager.log('%s already installed.', name)
+        elif cmd:
+            manager.log('Installing bundle %s...', name)
+            print cmd
+            Popen(cmd).wait()
+            b = cls(manager, dirname)
+            return b
 
 
 class Manager(object):
@@ -68,8 +167,11 @@ class Manager(object):
                 fd.write('call pathogen#runtime_append_all_bundles()\n')
                 fd.write('source %s\n' % join(self.ohmyvim, 'theme.vim'))
 
-        kw = dict(ohmyvim=ohmyvim,
-                  binary=os.path.abspath(sys.argv[0]))
+        if 'VIRTUAL_ENV' in os.environ:
+            binary = join(os.getenv('VIRTUAL_ENV'), 'oh-my-vim')
+        else:
+            binary = 'oh-my-vim'
+        kw = dict(ohmyvim=ohmyvim, binary=binary)
         if not isfile(expanduser('~/.vimrc')):
             with open(expanduser('~/.vimrc'), 'w') as fd:
                 fd.write(VIMRC % kw)
@@ -86,17 +188,13 @@ class Manager(object):
         sys.stdout.write(value + '\n')
         sys.stdout.flush()
 
-    def get_plugins(self):
-        plugins = []
+    def get_bundles(self):
+        bundles = []
         for plugin in os.listdir(self.runtime):
-            dirname = join(self.runtime, plugin)
-            if isdir(join(dirname, '.git')):
-                themes = []
-                if isdir(join(dirname, 'colors')):
-                    themes = os.listdir(join(dirname, 'colors'))
-                    themes = [t[:-4] for t in themes]
-                plugins.append((plugin, dirname, themes))
-        return plugins
+            bundle = Bundle(self, join(self.runtime, plugin))
+            if bundle.valid:
+                bundles.append(bundle)
+        return bundles
 
     def search(self, args):
         terms = [t.strip() for t in args.term if t.strip()]
@@ -108,49 +206,24 @@ class Manager(object):
         url = ("https://github.com/search?"
                "langOverride=&repo=&start_value=1&"
                "type=Repositories&language=VimL&q=") + terms
-        if '__test__' not in os.environ:
+        if '__ohmyvim_test__' not in os.environ:
             webbrowser.open_new(url)
         else:
             self.log(url)
 
     def list(self, args):
-        for plugin, dirname, themes in self.get_plugins():
+        for b in self.get_bundles():
             if args.complete:
-                self.log(plugin)
+                self.log(b.name)
             else:
-                os.chdir(dirname)
-                p = Popen(['git', 'remote', '-v'], stdout=PIPE)
-                p.wait()
-                remote = p.stdout.read().split('\n')[0]
-                remote = remote.split('\t')[1].split(' ')[0]
                 if args.urls:
-                    if plugin not in self.dependencies:
-                        self.log(remote)
+                    if b.name not in self.dependencies:
+                        if b.use_git:
+                            self.log('git+%s', b.remote)
+                        elif b.use_hg:
+                            self.log('hg+%s', b.remote)
                 else:
-                    self.log('* %s (%s)', plugin, remote)
-
-    def install_url(self, url):
-        url = url.strip()
-        dependencies = []
-        dirname = None
-        if '://github.com' in url and not url.endswith('.git'):
-            url = url.replace('http://', 'https://').rstrip() + '.git'
-        if url.endswith('.git'):
-            name = basename(url)[:-4]
-            dirname = join(self.runtime, name)
-            if os.path.isdir(dirname):
-                self.log('%s already installed. Upgrading...', name)
-                os.chdir(dirname)
-                Popen(['git', 'pull', '-qn']).wait()
-            else:
-                self.log('Installing bundle %s...', name)
-                Popen(['git', 'clone', '-q', url, dirname]).wait()
-            if isfile(join(dirname, 'requires.txt')):
-                with open(join(dirname, 'requires.txt')) as fd:
-                    dependencies = [d for d in fd.readlines()]
-        else:
-            self.log('%s is not a git url', url)
-        return dirname, dependencies
+                    self.log('* %s (%s)', b.name, b.remote)
 
     def install(self, args):
         filename = join(os.path.dirname(__file__), 'config.ini')
@@ -163,65 +236,56 @@ class Manager(object):
         else:
             dependencies = set()
             for url in args.url:
-                url = config.bundles.get(url, url)
-                url = config.themes.get(url, url)
                 if url.endswith('.txt'):
                     if isfile(url):
                         with open(url) as fd:
                             dependencies = [d for d in fd.readlines()]
                     elif url.startswith('http'):
                         fd = urlopen(url)
-                        dependencies = [d for d in fd.readlines()]
+                        dependencies = dependencies.union(
+                                            set([d for d in fd.readlines()]))
                 else:
-                    _, deps = self.install_url(url)
-                    for d in deps:
-                        if d.strip():
-                            dependencies.add(d)
+                    b = Bundle.install(self, url)
+                    if b:
+                        dependencies = dependencies.union(b.dependencies)
             if dependencies:
                 self.log('Processing dependencies...')
                 for url in dependencies:
-                    self.install_url(url)
+                    if url.strip():
+                        b = Bundle.install(self, url.strip())
 
     def upgrade(self, args):
-        for plugin, dirname, themes in self.get_plugins():
-            if plugin in args.bundle or len(args.bundle) == 0:
-                self.log('Upgrading %s...', plugin)
-                os.chdir(dirname)
-                Popen(['git', 'pull', '-qn']).wait()
+        for b in self.get_bundles():
+            if b.name in args.bundle or len(args.bundle) == 0:
+                self.log('Upgrading %s...', b.name)
+                b.upgrade()
 
     def remove(self, args):
         if args.bundle:
-            for plugin, dirname, themes in self.get_plugins():
-                if plugin in args.bundle:
-                    if plugin in self.dependencies:
-                        self.log("Don't remove %s!", plugin)
-                    self.log('Removing %s...', plugin)
-                    dirname = join(self.runtime, plugin)
-                    if isdir(join(dirname, '.git')):
-                        shutil.rmtree(dirname)
+            for b in self.get_bundles():
+                if b.name in args.bundle:
+                    if b.name in self.dependencies:
+                        self.log("Don't remove %s!", b.name)
+                    self.log('Removing %s...', b.name)
+                    shutil.rmtree(b.dirname)
 
     def theme(self, args):
         theme = args.theme
         if theme:
-            for plugin, dirname, themes in self.get_plugins():
-                if theme in themes:
+            for b in self.get_bundles():
+                if theme in b.themes:
                     self.log('Activate %s theme...', theme)
                     with open(join(self.ohmyvim, 'theme.vim'), 'w') as fd:
                         fd.write(':colo %s\n' % theme)
         else:
-            for plugin, dirname, themes in self.get_plugins():
-                if isdir(join(dirname, '.git')):
-                    os.chdir(dirname)
-                    p = Popen(['git', 'remote', '-v'], stdout=PIPE)
-                    p.wait()
-                    remote = p.stdout.read().split('\n')[0]
-                    remote = remote.split('\t')[1].split(' ')[0]
+            for b in self.get_bundles():
+                themes = b.themes
                 if themes:
                     if args.complete:
                         for theme in themes:
                             self.log(theme)
                     else:
-                        self.log('* %s (%s)', plugin, remote)
+                        self.log('* %s (%s)', b.name, b.remote)
                         self.log('\t- %s', ', '.join(themes))
 
     def profiles(self, args):

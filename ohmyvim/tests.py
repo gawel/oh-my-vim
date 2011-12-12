@@ -12,10 +12,11 @@ import os
 class TestOhMyVim(unittest.TestCase):
 
     def setUp(self):
+        self.addCleanup(os.chdir, os.getcwd())
         self.wd = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, self.wd)
         os.environ['HOME'] = self.wd
-        os.environ['__test__'] = '1'
+        os.environ['__ohmyvim_test__'] = '1'
         self.requires = join(self.wd, 'deps.txt')
         with open(self.requires, 'w') as fd:
             fd.write('https://github.com/vim-scripts/github-theme.git\n\n')
@@ -66,10 +67,10 @@ class TestOhMyVim(unittest.TestCase):
 
         resp = self.main(
                 'install https://github.com/vim-scripts/github-theme.git')
-        self.assertIn('github-theme already installed. Upgrading...', resp)
+        self.assertIn('github-theme already installed.', resp)
 
         resp = self.main('install %s' % self.requires)
-        self.assertIn('github-theme already installed. Upgrading...', resp)
+        self.assertIn('github-theme already installed.', resp)
 
         resp = self.main('list --complete')
         self.assertIn('github-theme', resp)
@@ -80,7 +81,8 @@ class TestOhMyVim(unittest.TestCase):
            resp)
 
         resp = self.main('list -u')
-        self.assertIn('https://github.com/vim-scripts/github-theme.git', resp)
+        self.assertIn('git+https://github.com/vim-scripts/github-theme.git',
+                      resp)
 
         resp = self.main('theme --complete')
         self.assertIn('github', resp)
@@ -99,5 +101,3 @@ class TestOhMyVim(unittest.TestCase):
 
         resp = self.main('upgrade oh-my-vim')
         self.assertIn('Upgrading oh-my-vim...', resp)
-
-
