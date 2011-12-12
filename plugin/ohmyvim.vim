@@ -7,6 +7,7 @@ function! OhMyVim(args)
     echo ''
     let a:splitted = split(a:args, ' ')
     if a:splitted[0] == 'theme' && len(a:splitted) > 1
+        call system(g:ohmyvim.' '.a:args)
         call pathogen#runtime_append_all_bundles()
         source ~/.vim/ohmyvim/theme.vim
     else
@@ -39,8 +40,8 @@ function! OhMyVimCmpl(A,L,P)
         elseif a:splitted[1] == 'remove'
             return system(g:ohmyvim.' list --complete')
         endif
-        return "\n"
     endif
+    return "\n"
 endfunction
 
 function! OhMyVimProfiles()
