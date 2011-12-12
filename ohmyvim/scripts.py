@@ -242,10 +242,15 @@ class Manager(object):
                     self.log('* %s (%s)', b.name, b.remote)
         if args.all:
             config = get_config()
-            for name, url in sorted(config.bundles.items()):
-                self.log('- %s (%s)', name, url)
-            for name, url in sorted(config.vimscripts.items()):
-                self.log('- %s (%s)', name, url)
+            printed = set()
+            bundles = config.bundles.items() + config.vimscripts.items()
+            for name, url in bundles:
+                if name not in printed:
+                    printed.add(name)
+                    if args.raw:
+                        self.log(name)
+                    else:
+                        self.log('- %s (%s)', name, url)
 
     def install(self, args):
         config = get_config()

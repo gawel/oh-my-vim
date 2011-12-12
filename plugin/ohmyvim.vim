@@ -17,7 +17,7 @@ endfunction
 
 function! OhMyVimCmpl(A,L,P)
     let a:splitted = split(a:L, ' ')
-    let a:cmds=sort(split('search,upgrade,list,remove,theme,profiles,install', ','))
+    let a:cmds=sort(split('info,search,upgrade,list,remove,theme,profiles,install', ','))
     if len(a:splitted) == 1
         return join(a:cmds, "\n")
     elseif len(a:splitted) == 2
@@ -33,6 +33,8 @@ function! OhMyVimCmpl(A,L,P)
     if len(a:splitted) >= 3
         if a:splitted[1] == 'theme'
             return system(g:ohmyvim.' theme --raw')
+        elseif a:splitted[1] == 'info'
+            return system(g:ohmyvim.' list -a --raw')
         elseif a:splitted[1] == 'install'
             return system(g:ohmyvim.' install --raw')
         elseif a:splitted[1] == 'upgrade'
