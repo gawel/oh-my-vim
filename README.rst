@@ -25,7 +25,7 @@ If ``oh-my-vim`` is installed as root. You'll have to upgrade your user account:
 
     $ oh-my-vim upgrade all
 
-Have a look at you ``~/.vimrc``::
+Have a look at your ``~/.vimrc``::
 
     $ vim ~/.vimrc
 
@@ -58,6 +58,11 @@ Generate a ``requires.txt`` file::
 Upgrade bundles::
 
     $ oh-my-vim upgrade [all|bundle1|bundle2|...]
+
+Useful links
+============
+
+- `Vim for programmers <http://i.snag.gy/r7ExK.jpg>`_
 
 FAQ
 ===
