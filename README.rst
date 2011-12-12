@@ -61,10 +61,15 @@ Generate a ``requires.txt`` file::
 
 Upgrade bundles::
 
-    $ oh-my-vim upgrade [all|bundle1|bundle2|...]
+    $ oh-my-vim upgrade [bundle1|bundle2|...]
+
+Notice that you'd better use ``pip install --upgrade oh-my-vim`` to get a clean
+update. This will also update all bundles.
 
 Useful links
 ============
+
+- `Vim revisited <http://mislav.uniqpath.com/2011/12/vim-revisited/>`_
 
 - `Vim for programmers <http://i.snag.gy/r7ExK.jpg>`_
 
