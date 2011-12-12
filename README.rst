@@ -51,6 +51,10 @@ List installed packages::
 
     $ oh-my-vim list
 
+List all packages listed in Oh My Vim's registry::
+
+    $ oh-my-vim list -a
+
 Generate a ``requires.txt`` file::
 
     $ oh-my-vim list -u > requires.txt
@@ -70,6 +74,12 @@ FAQ
 **Can I use oh-my-vim from Vim ?**
 
 Yes, and you should. You'll get some completion. Just use ``:OhMyVim <args>``
+
+**Can I install a bundle from a mercurial repository ?**
+
+Yes. You just need to prefix your url with ``hg+``::
+
+  $ oh-my-vim install hg+https://bitbucket.org/sjl/gundo.vim
 
 **This is a great project. Can I offer you a beer ?**
 

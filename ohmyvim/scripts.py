@@ -86,8 +86,7 @@ class Bundle(object):
 
     @classmethod
     def resolve_url(self, url):
-        filename = join(os.path.dirname(__file__), 'config.ini')
-        config = ConfigObject(filename=filename)
+        config = get_config()
 
         url = url.strip()
         url = config.bundles.get(url.lower(), url)
@@ -241,10 +240,15 @@ class Manager(object):
                             self.log('hg+%s', b.remote)
                 else:
                     self.log('* %s (%s)', b.name, b.remote)
+        if args.all:
+            config = get_config()
+            for name, url in sorted(config.bundles.items()):
+                self.log('- %s (%s)', name, url)
+            for name, url in sorted(config.vimscripts.items()):
+                self.log('- %s (%s)', name, url)
 
     def install(self, args):
-        filename = join(os.path.dirname(__file__), 'config.ini')
-        config = ConfigObject(filename=filename)
+        config = get_config()
         if args.raw:
             for name in sorted(config.bundles.keys()):
                 self.log(name)
@@ -323,6 +327,11 @@ class Manager(object):
                     self.log('* %s', name)
 
 
+def get_config():
+    filename = join(os.path.dirname(__file__), 'config.ini')
+    return ConfigObject(filename=filename)
+
+
 def main(*args):
     import argparse
 
@@ -343,6 +352,7 @@ def main(*args):
 
     p = subparsers.add_parser('list')
     p.add_argument('--raw', action='store_true', default=False)
+    p.add_argument('-a', '--all', action='store_true', default=False)
     p.add_argument('-u', '--urls', action='store_true', default=False)
     p.set_defaults(action=manager.list)
 
@@ -388,7 +398,6 @@ def update_registry():
         vimscripts.update([(r['name'], r['clone_url']) for r in repos])
         links = resp.headers.get('Link', '')
 
-    filename = join(os.path.dirname(__file__), 'config.ini')
-    config = ConfigObject(filename=filename)
+    config = get_config()
     config.vimscripts = vimscripts
     config.write()
