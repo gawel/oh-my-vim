@@ -218,9 +218,10 @@ class Manager(object):
 
         install_dir = expanduser('~/.oh-my-vim/')
         if os.path.isdir(install_dir):
-            bin_dir = join(install_dir, 'venv/bin')
+            bin_dir = join(install_dir, 'env', 'bin')
         else:
             bin_dir = os.path.dirname(sys.executable)
+            pip = join(bin_dir, 'pip')
             install_dir = None
 
         pip = join(bin_dir, 'pip')
@@ -231,7 +232,7 @@ class Manager(object):
             if install_dir:
                 bin_dir = join(install_dir, 'bin')
                 cmd.append(('--install-option="'
-                            '--install-scripts=%s"') % bin_dir)
+                            '--script-dir==%s"') % bin_dir)
 
             cmd.append('-e "git+%s#egg=oh-my-vim' % GIT_URL)
 
@@ -246,7 +247,7 @@ class Manager(object):
                 p.wait()
                 return True
 
-        self.log('Dont know how to upgrade oh-my-zsh...')
+        self.log('Dont know how to upgrade oh-my-vim...')
         self.log('Update it manualy then run:')
         self.log('    $ %s upgrade --force', sys.argv[0])
 

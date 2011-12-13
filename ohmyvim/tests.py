@@ -128,11 +128,14 @@ class TestInstall(unittest.TestCase, Mixin):
     def setUp(self):
         self.setUpMixin()
 
-        def setpath(path):
-            os.environ['PYTHONPATH'] = path
+        def setenv(key, value):
+            os.environ[key] = value
 
-        self.addCleanup(setpath, os.environ['PYTHONPATH'])
+        self.addCleanup(setenv, 'PYTHONPATH', os.environ['PYTHONPATH'])
+        self.addCleanup(setenv, 'BUILDOUT_ORIGINAL_PYTHONPATH',
+                                os.environ['BUILDOUT_ORIGINAL_PYTHONPATH'])
         os.environ['PYTHONPATH'] = ''
+        del os.environ['BUILDOUT_ORIGINAL_PYTHONPATH']
 
     def test_install(self):
         script = os.path.join(
