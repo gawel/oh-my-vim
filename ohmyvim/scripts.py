@@ -231,8 +231,8 @@ class Manager(object):
 
             if install_dir:
                 bin_dir = join(install_dir, 'bin')
-                cmd.append(('--install-option="'
-                            '--script-dir==%s"') % bin_dir)
+                cmd.append(('--install-option='
+                            '--script-dir==%s') % bin_dir)
 
             cmd.extend(['-e', 'git+%s@master#egg=oh-my-vim' % GIT_URL])
 
