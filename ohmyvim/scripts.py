@@ -2,7 +2,6 @@ from os.path import join
 from os.path import isdir
 from os.path import isfile
 from os.path import basename
-from os.path import expanduser
 from ConfigObject import ConfigObject
 from urllib import urlopen
 from subprocess import Popen
@@ -152,7 +151,8 @@ class Bundle(object):
             self.log('    $ %s upgrade --force', sys.argv[0])
             return False
 
-        install_dir = expanduser('~/.oh-my-vim/')
+        home = os.environ['HOME']
+        install_dir = join(home, '.oh-my-vim/')
         if os.path.isdir(install_dir):
             bin_dir = join(install_dir, 'env', 'bin')
         else:
@@ -163,7 +163,8 @@ class Bundle(object):
         pip = join(bin_dir, 'pip')
 
         if isfile(pip):
-            cmd = [pip, 'install', '-q', '--src=~/.vim/bundle/']
+            cmd = [pip, 'install', '-q',
+                   '--src=%s' % join(home, '.vim', 'bundle')]
 
             if install_dir:
                 bin_dir = join(install_dir, 'bin')
@@ -172,7 +173,7 @@ class Bundle(object):
 
             cmd.extend(['-e', 'git+%s@master#egg=oh-my-vim' % GIT_URL])
 
-            if expanduser('~/') not in cmd[0]:
+            if home not in cmd[0]:
                 cmd.insert(0, 'sudo')
 
             if '__ohmyvim_test__' in os.environ:
@@ -198,9 +199,11 @@ class Manager(object):
     def __init__(self):
         self.output = []
 
-        self.runtime = expanduser('~/.vim/bundle')
-        self.autoload = expanduser('~/.vim/autoload')
-        self.ohmyvim = expanduser('~/.vim/ohmyvim')
+        self.home = os.environ['HOME']
+        self.vim = join(self.home, '.vim')
+        self.runtime = join(self.vim, 'bundle')
+        self.autoload = join(self.vim, 'autoload')
+        self.ohmyvim = join(self.vim, 'ohmyvim')
 
         for dirname in (self.runtime, self.autoload,
                         self.ohmyvim):
@@ -230,13 +233,13 @@ class Manager(object):
         else:
             binary = 'oh-my-vim'
         kw = dict(ohmyvim=ohmyvim, binary=binary)
-        if not isfile(expanduser('~/.vimrc')):
-            with open(expanduser('~/.vimrc'), 'w') as fd:
+        if not isfile(join(self.home, '.vimrc')):
+            with open(join(self.home, '.vimrc'), 'w') as fd:
                 fd.write(VIMRC % kw)
         else:
-            with open(expanduser('~/.vimrc')) as fd:
+            with open(join(self.home, '.vimrc')) as fd:
                 if ohmyvim not in fd.read():
-                    with open(expanduser('~/.vimrc'), 'a') as fd:
+                    with open(join(self.home, '.vimrc'), 'a') as fd:
                         fd.write(VIMRC % kw)
 
     def log(self, value, *args):
