@@ -19,11 +19,9 @@ Install from the repository::
 
     $ pip install -e "git+https://github.com/gawel/oh-my-vim.git#egg=oh-my-zsh"
 
-Add the ``--upgrade`` option for upgrading.
-
 If ``oh-my-vim`` is installed as root. You'll have to upgrade your user account::
 
-    $ oh-my-vim upgrade all
+    $ oh-my-vim upgrade
 
 Have a look at your ``~/.vimrc``::
 
@@ -63,8 +61,8 @@ Upgrade bundles::
 
     $ oh-my-vim upgrade [bundle1|bundle2|...]
 
-Notice that you'd better use ``pip install --upgrade oh-my-vim`` to get a clean
-update. This will also update all bundles.
+To skip ``oh-my-vim`` upgrades add ``let ohmyvim_no_upgrade=1`` somewhere in
+your ``.vimrc``
 
 Useful links
 ============

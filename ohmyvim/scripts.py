@@ -8,6 +8,8 @@ from urllib import urlopen
 from subprocess import Popen
 from subprocess import PIPE
 from glob import glob
+import pkg_resources
+import xmlrpclib
 import webbrowser
 import shutil
 import json
@@ -71,11 +73,14 @@ class Bundle(object):
             return remote
 
     def upgrade(self):
+        self.log('Upgrading %s...', self.name)
+        os.chdir(self.dirname)
         if self.use_git:
             p = Popen(['git', 'pull', '-qn'], stdout=PIPE)
+            p.wait()
         elif self.use_hg:
             p = Popen(['hg', 'pull', '-qu'], stdout=PIPE)
-        p.wait()
+            p.wait()
 
     @property
     def dependencies(self):
@@ -202,6 +207,51 @@ class Manager(object):
                 bundles.append(bundle)
         return bundles
 
+    def self_upgrade(self):
+        """Try to upgrade itself if a new version is available"""
+        try:
+            version = pkg_resources.get_distribution('oh-my-vim').version
+            client = xmlrpclib.ServerProxy('http://pypi.python.org/pypi')
+            releases = client.package_releases('oh-my-vim')
+        except:
+            pass
+        else:
+            max_version = max(releases)
+            if float(version) < max([float(v) for v in releases]):
+                self.log('oh-my-vim %s is available', max_version)
+
+                with open(expanduser('~/.vimrc')) as fd:
+                    if 'ohmyvim_no_upgrade' in fd.read():
+                        return False
+
+                if 'BUILDOUT_ORIGINAL_PYTHONPATH' in os.environ:
+                    self.log('Update your buildout then run:')
+                    self.log('%s upgrade --force', sys.argv[0])
+                    return False
+
+                bindir = os.path.dirname(sys.executable)
+                pip = join(bindir, 'pip')
+                ei = join(bindir, 'easy_install')
+
+                cmd = []
+
+                if isfile(pip):
+                    cmd = [pip, 'install', 'oh-my-vim==%s' % max_version]
+                elif isfile(ei):
+                    cmd = [ei, 'oh-my-vim==%s' % max_version]
+
+                if cmd:
+                    value = raw_input('Upgrading using %s ? [Y/n]' % cmd[0])
+                    if value.strip() in ('Y', 'y', ''):
+                        if expanduser('~/') not in cmd[0]:
+                            cmd.insert(0, 'sudo')
+                        p = Popen(cmd)
+                        p.wait()
+                        return True
+
+                self.log('Update it manualy then run:')
+                self.log('%s upgrade --force', sys.argv[0])
+
     def search(self, args):
         terms = [t.strip() for t in args.term if t.strip()]
         if args.theme_only:
@@ -281,10 +331,13 @@ class Manager(object):
                         b = Bundle.install(self, url.strip())
 
     def upgrade(self, args):
+        self_name = 'oh-my-vim'
+        if self.self_upgrade() or args.force or 'oh-my-vim' in args.bundles:
+            self_name = '_'
         for b in self.get_bundles():
             if b.name in args.bundle or len(args.bundle) == 0:
-                self.log('Upgrading %s...', b.name)
-                b.upgrade()
+                if b.name != self_name:
+                    b.upgrade()
 
     def remove(self, args):
         if args.bundle:
@@ -331,6 +384,10 @@ class Manager(object):
                 else:
                     self.log('* %s', name)
 
+    def version(self, args):
+        version = pkg_resources.get_distribution('oh-my-vim').version
+        self.log(version)
+
 
 def get_config():
     filename = join(os.path.dirname(__file__), 'config.ini')
@@ -367,6 +424,7 @@ def main(*args):
     p.set_defaults(action=manager.install)
 
     p = subparsers.add_parser('upgrade', help='upgrade bundles')
+    p.add_argument('--force', action='store_true', default=False)
     p.add_argument('bundle', nargs='*', default='')
     p.set_defaults(action=manager.upgrade)
 
@@ -379,8 +437,8 @@ def main(*args):
     p.add_argument('theme', nargs='?', default='')
     p.set_defaults(action=manager.theme)
 
-    p = subparsers.add_parser('profiles', help='list all available profiles')
-    p.set_defaults(action=manager.profiles)
+    p = subparsers.add_parser('version', help='print version')
+    p.set_defaults(action=manager.version)
 
     if args:
         args = parser.parse_args(args)
@@ -389,7 +447,8 @@ def main(*args):
 
     args.action(args)
 
-    return manager.output
+    if '__ohmyvim_test__' in os.environ:
+        return manager.output
 
 
 def update_registry():
