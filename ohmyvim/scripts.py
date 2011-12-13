@@ -201,6 +201,7 @@ class Manager(object):
 
         self.home = os.environ['HOME']
         self.vim = join(self.home, '.vim')
+        self.vimrs = join(self.home, '.vimrc')
         self.runtime = join(self.vim, 'bundle')
         self.autoload = join(self.vim, 'autoload')
         self.ohmyvim = join(self.vim, 'ohmyvim')
@@ -233,13 +234,13 @@ class Manager(object):
         else:
             binary = 'oh-my-vim'
         kw = dict(ohmyvim=ohmyvim, binary=binary)
-        if not isfile(join(self.home, '.vimrc')):
-            with open(join(self.home, '.vimrc'), 'w') as fd:
+        if not isfile(self.vimrc):
+            with open(self.vimrc, 'w') as fd:
                 fd.write(VIMRC % kw)
         else:
-            with open(join(self.home, '.vimrc')) as fd:
+            with open(self.vimrc) as fd:
                 if ohmyvim not in fd.read():
-                    with open(join(self.home, '.vimrc'), 'a') as fd:
+                    with open(self.vimrc, 'a') as fd:
                         fd.write(VIMRC % kw)
 
     def log(self, value, *args):

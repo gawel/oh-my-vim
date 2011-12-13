@@ -144,5 +144,7 @@ class TestInstall(unittest.TestCase, Mixin):
         subprocess.Popen(script, shell=True).wait()
         self.assertIsFile('.oh-my-vim/env/bin/python')
         self.assertIsFile('.oh-my-vim/bin/oh-my-vim')
-        subprocess.Popen([os.path.join(self.wd, '.oh-my-vim/bin/oh-my-vim'),
-                          'upgrade']).wait()
+        subprocess.Popen(' '.join(
+                       [os.path.join(self.wd, '.oh-my-vim/bin/oh-my-vim'),
+                       'upgrade']),
+                       shell=True).wait()
