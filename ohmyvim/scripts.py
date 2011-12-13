@@ -34,6 +34,8 @@ source %(ohmyvim)s
 
 '''
 
+GIT_URL = "https://github.com/gawel/oh-my-vim.git"
+
 
 class Bundle(object):
 
@@ -146,7 +148,7 @@ class Manager(object):
 
     dependencies = {
         'vim-pathogen': 'https://github.com/tpope/vim-pathogen.git',
-        'oh-my-vim': 'https://github.com/gawel/oh-my-vim.git',
+        'oh-my-vim': GIT_URL,
       }
 
     def __init__(self):
@@ -231,18 +233,23 @@ class Manager(object):
 
                 bindir = os.path.dirname(sys.executable)
                 pip = join(bindir, 'pip')
-                ei = join(bindir, 'easy_install')
 
                 cmd = []
 
                 if isfile(pip):
-                    cmd = [pip, 'install', 'oh-my-vim==%s' % max_version]
-                elif isfile(ei):
-                    cmd = [ei, 'oh-my-vim==%s' % max_version]
+                    cmd = [pip, 'install', '--upgrade', '--src=~/.vim/bundle/'
+                                '-e "git+%s#egg=oh-my-vim' % GIT_URL]
 
                 if cmd:
-                    value = raw_input('Upgrading using %s ? [Y/n]' % cmd[0])
-                    if value.strip() in ('Y', 'y', ''):
+                    do_install = False
+                    if isdir('~/.oh-my-vim/bin/'):
+                        do_install = True
+                    elif 'MYVIMRC' not in os.environ:
+                        value = raw_input(
+                                    'Upgrading using %s ? [Y/n]' % cmd[0])
+                        if value.strip() in ('Y', 'y', ''):
+                            do_install = True
+                    if do_install:
                         if expanduser('~/') not in cmd[0]:
                             cmd.insert(0, 'sudo')
                         p = Popen(cmd)

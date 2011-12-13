@@ -11,17 +11,15 @@ Installation
 
 It's recommended to install ``oh-my-vim`` as a non root user.
 
-Just run::
+If you don't know python and virtualenv then just run the install script::
 
-    $ pip install oh-my-vim
+    $ curl -O https://raw.github.com/gawel/oh-my-vim/master/install.sh | sh -
 
-Install from the repository::
 
-    $ pip install -e "git+https://github.com/gawel/oh-my-vim.git#egg=oh-my-zsh"
+If you know virtualenv/pip then just run this in a virtualenv::
 
-If ``oh-my-vim`` is installed as root. You'll have to upgrade your user account::
-
-    $ oh-my-vim upgrade
+    $ pip install --upgrade --src=~/.vim/bundle/ -e "git+https://github.com/gawel/oh-my-vim.git#egg=oh-my-vim"
+    $ oh-my-vim version
 
 Have a look at your ``~/.vimrc``::
 
