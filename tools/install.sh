@@ -17,18 +17,24 @@ cd $install_dir
 
 if ! [ -d "$install_dir/bin" ]
 then
+    echo "Installing virtualenv..."
     curl -O https://raw.github.com/pypa/virtualenv/master/virtualenv.py
-    $py virtualenv.py --no-site-packages --distribute env
+    $py virtualenv.py -q --distribute env
 fi
 
 ! [ -d $bundles ] && mkdir -p $bundles
 
 source $install_dir/env/bin/activate
-pip install ConfigObject argparse
-pip install --src="$HOME/.vim/bundle/" \
+
+echo "Installing dependencies..."
+pip install -q ConfigObject argparse
+
+echo "Installing oh-my-vim..."
+pip install -q --src="$HOME/.vim/bundle/" \
     --install-option="--script-dir=$install_dir/bin" \
     -e "git+https://github.com/gawel/oh-my-vim.git@master#egg=oh-my-vim"
 
+$install_dir/bin/oh-my-vim version
 version=$($install_dir/bin/oh-my-vim version)
 
 echo ""

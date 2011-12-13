@@ -34,7 +34,7 @@ class Mixin(object):
         self.assertTrue(len(resp) > 0, resp)
 
 
-class TestOhMyVim(unittest.TestCase, Mixin):
+class TestScript(unittest.TestCase, Mixin):
 
     def setUp(self):
         self.setUpMixin()

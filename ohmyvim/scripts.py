@@ -73,16 +73,6 @@ class Bundle(object):
             remote = remote.split(' = ')[1].strip()
             return remote
 
-    def upgrade(self):
-        self.log('Upgrading %s...', self.name)
-        os.chdir(self.dirname)
-        if self.use_git:
-            p = Popen(['git', 'pull', '-qn'], stdout=PIPE)
-            p.wait()
-        elif self.use_hg:
-            p = Popen(['hg', 'pull', '-qu'], stdout=PIPE)
-            p.wait()
-
     @property
     def dependencies(self):
         if isfile(join(self.dirname, 'requires.txt')):
@@ -141,6 +131,61 @@ class Bundle(object):
             Popen(cmd).wait()
             b = cls(manager, dirname)
             return b
+
+    def upgrade(self):
+        self.log('Upgrading %s...', self.name)
+        if self.name == 'oh-my-vim':
+            self.self_upgrade()
+        else:
+            os.chdir(self.dirname)
+            if self.use_git:
+                p = Popen(['git', 'pull', '-qn'], stdout=PIPE)
+                p.wait()
+            elif self.use_hg:
+                p = Popen(['hg', 'pull', '-qu'], stdout=PIPE)
+                p.wait()
+
+    def self_upgrade(self):
+        """Try to upgrade itself if a new version is available"""
+        if 'BUILDOUT_ORIGINAL_PYTHONPATH' in os.environ:
+            self.log('Update your buildout then run:')
+            self.log('    $ %s upgrade --force', sys.argv[0])
+            return False
+
+        install_dir = expanduser('~/.oh-my-vim/')
+        if os.path.isdir(install_dir):
+            bin_dir = join(install_dir, 'env', 'bin')
+        else:
+            bin_dir = os.path.dirname(sys.executable)
+            pip = join(bin_dir, 'pip')
+            install_dir = None
+
+        pip = join(bin_dir, 'pip')
+
+        if isfile(pip):
+            cmd = [pip, 'install', '-q', '--src=~/.vim/bundle/']
+
+            if install_dir:
+                bin_dir = join(install_dir, 'bin')
+                cmd.append(('--install-option='
+                            '--script-dir==%s') % bin_dir)
+
+            cmd.extend(['-e', 'git+%s@master#egg=oh-my-vim' % GIT_URL])
+
+            if expanduser('~/') not in cmd[0]:
+                cmd.insert(0, 'sudo')
+
+            if '__ohmyvim_test__' in os.environ:
+                self.log(' '.join(cmd))
+                return True
+            else:
+                p = Popen(cmd)
+                p.wait()
+                return True
+
+        self.log('Dont know how to upgrade oh-my-vim...')
+        self.log('Update it manualy then run:')
+        self.log('    $ %s upgrade --force', sys.argv[0])
 
 
 class Manager(object):
@@ -208,48 +253,6 @@ class Manager(object):
             if bundle.valid:
                 bundles.append(bundle)
         return bundles
-
-    def self_upgrade(self):
-        """Try to upgrade itself if a new version is available"""
-        if 'BUILDOUT_ORIGINAL_PYTHONPATH' in os.environ:
-            self.log('Update your buildout then run:')
-            self.log('    $ %s upgrade --force', sys.argv[0])
-            return False
-
-        install_dir = expanduser('~/.oh-my-vim/')
-        if os.path.isdir(install_dir):
-            bin_dir = join(install_dir, 'env', 'bin')
-        else:
-            bin_dir = os.path.dirname(sys.executable)
-            pip = join(bin_dir, 'pip')
-            install_dir = None
-
-        pip = join(bin_dir, 'pip')
-
-        if isfile(pip):
-            cmd = [pip, 'install', '--src=~/.vim/bundle/']
-
-            if install_dir:
-                bin_dir = join(install_dir, 'bin')
-                cmd.append(('--install-option='
-                            '--script-dir==%s') % bin_dir)
-
-            cmd.extend(['-e', 'git+%s@master#egg=oh-my-vim' % GIT_URL])
-
-            if expanduser('~/') not in cmd[0]:
-                cmd.insert(0, 'sudo')
-
-            if '__ohmyvim_test__' in os.environ:
-                self.log(' '.join(cmd))
-                return True
-            else:
-                p = Popen(cmd)
-                p.wait()
-                return True
-
-        self.log('Dont know how to upgrade oh-my-vim...')
-        self.log('Update it manualy then run:')
-        self.log('    $ %s upgrade --force', sys.argv[0])
 
     def search(self, args):
         terms = [t.strip() for t in args.term if t.strip()]
@@ -330,13 +333,9 @@ class Manager(object):
                         b = Bundle.install(self, url.strip())
 
     def upgrade(self, args):
-        self_name = 'oh-my-vim'
-        if self.self_upgrade() or args.force or 'oh-my-vim' in args.bundle:
-            self_name = '_'
         for b in self.get_bundles():
             if b.name in args.bundle or len(args.bundle) == 0:
-                if b.name != self_name:
-                    b.upgrade()
+                b.upgrade()
 
     def remove(self, args):
         if args.bundle:
