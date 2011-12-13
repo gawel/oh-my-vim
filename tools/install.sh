@@ -27,7 +27,7 @@ source $install_dir/env/bin/activate
 pip install ConfigObject argparse
 pip install --src="$HOME/.vim/bundle/" \
     --install-option="--script-dir=$install_dir/bin" \
-    -e "git+https://github.com/gawel/oh-my-vim.git#egg=oh-my-vim"
+    -e "git+https://github.com/gawel/oh-my-vim.git@master#egg=oh-my-vim"
 
 version=$($install_dir/bin/oh-my-vim version)
 
