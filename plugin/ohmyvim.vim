@@ -6,6 +6,8 @@ command! -complete=custom,OhMyVimCmpl -nargs=+ OhMyVim :call OhMyVim("<args>")
 function! OhMyVim(args)
     echo ''
     let a:splitted = split(a:args, ' ')
+    if a:splitted[0] == 'upgrade':
+        echoerr 'Please run oh-my-vim upgrade from the command line'
     if a:splitted[0] == 'theme' && len(a:splitted) > 1
         call system(g:ohmyvim.' '.a:args)
         call pathogen#runtime_append_all_bundles()
@@ -17,7 +19,7 @@ endfunction
 
 function! OhMyVimCmpl(A,L,P)
     let a:splitted = split(a:L, ' ')
-    let a:cmds=sort(split('info,search,upgrade,list,remove,theme,profiles,install', ','))
+    let a:cmds=sort(split('info,search,list,remove,theme,profiles,install', ','))
     if len(a:splitted) == 1
         return join(a:cmds, "\n")
     elseif len(a:splitted) == 2
@@ -37,8 +39,6 @@ function! OhMyVimCmpl(A,L,P)
             return system(g:ohmyvim.' list -a --raw')
         elseif a:splitted[1] == 'install'
             return system(g:ohmyvim.' install --raw')
-        elseif a:splitted[1] == 'upgrade'
-            return system(g:ohmyvim.' list --raw')
         elseif a:splitted[1] == 'remove'
             return system(g:ohmyvim.' list --raw')
         endif
