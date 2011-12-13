@@ -234,7 +234,7 @@ class Manager(object):
                 cmd.append(('--install-option="'
                             '--script-dir==%s"') % bin_dir)
 
-            cmd.extend(['-e', '"git+%s@master#egg=oh-my-vim"' % GIT_URL])
+            cmd.extend(['-e', 'git+%s@master#egg=oh-my-vim' % GIT_URL])
 
             if expanduser('~/') not in cmd[0]:
                 cmd.insert(0, 'sudo')
