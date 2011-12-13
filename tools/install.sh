@@ -7,6 +7,8 @@ then
     exit
 fi
 
+echo "Using $py"
+
 ohmyvim="bin/oh-my-vim"
 install_dir=$HOME/.oh-my-vim
 bundles=$HOME/.vim/bundle
@@ -16,16 +18,22 @@ cd $install_dir
 if ! [ -d "$install_dir/bin" ]
 then
     curl -O https://raw.github.com/pypa/virtualenv/master/virtualenv.py
-    $py virtualenv.py --no-site-packages --distribute .
+    $py virtualenv.py --no-site-packages --distribute env
 fi
 
-source bin/activate
 ! [ -d $bundles ] && mkdir -p $bundles
-pip install --upgrade --src="$HOME/.vim/bundle/" -e "git+https://github.com/gawel/oh-my-vim.git#egg=oh-my-vim"
-rm -f virtualenv.py* *.tar.gz
-version=`oh-my-vim version`
-echo "========================================================"
-echo "Sucessfully installer oh-my-vim $version to $install_dir"
+
+source $install_dir/env/bin/activate
+pip install ConfigObject argparse
+pip install --src="$HOME/.vim/bundle/" \
+    --install-option="--script-dir=$install_dir/bin" \
+    -e "git+https://github.com/gawel/oh-my-vim.git#egg=oh-my-vim"
+
+version=$($install_dir/bin/oh-my-vim version)
+
+echo ""
+echo "=========================================================="
+echo "Sucessfully installed oh-my-vim $version to $install_dir"
 echo "Binary can be found at $install_dir/$ohmyvim"
 
 function add_path() {
@@ -50,8 +58,12 @@ elif [ -f ~/.bashrc ]
 then
     add_path ~/.bashrc
 else
-    echo "!! Please add $install_dir/bin to your $PATH"
+    echo ""
+    echo "!! Please add $install_dir/bin to your \$PATH"
+    echo ""
+    echo "    export PATH=\$PATH:$install_dir/bin"
 fi
 echo ""
 echo "========================================================"
 
+ls ~/.vim/bundle

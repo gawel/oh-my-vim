@@ -9,7 +9,6 @@ from subprocess import Popen
 from subprocess import PIPE
 from glob import glob
 import pkg_resources
-import xmlrpclib
 import webbrowser
 import shutil
 import json
@@ -159,12 +158,13 @@ class Manager(object):
         self.ohmyvim = expanduser('~/.vim/ohmyvim')
 
         for dirname in (self.runtime, self.autoload,
-                        self.ohmyvim, expanduser('~/.vim/swp')):
+                        self.ohmyvim):
             if not isdir(dirname):
                 os.makedirs(dirname)
 
         for name, url in self.dependencies.items():
             if not isdir(join(self.runtime, name)):
+                self.log('Installing %s...' % name)
                 Popen(['git', 'clone', '-q', url,
                        join(self.runtime, name)]).wait()
 
@@ -211,53 +211,44 @@ class Manager(object):
 
     def self_upgrade(self):
         """Try to upgrade itself if a new version is available"""
-        try:
-            version = pkg_resources.get_distribution('oh-my-vim').version
-            client = xmlrpclib.ServerProxy('http://pypi.python.org/pypi')
-            releases = client.package_releases('oh-my-vim')
-        except:
-            pass
+        if 'BUILDOUT_ORIGINAL_PYTHONPATH' in os.environ:
+            self.log('Update your buildout then run:')
+            self.log('    $ %s upgrade --force', sys.argv[0])
+            return False
+
+        install_dir = expanduser('~/.oh-my-vim/')
+        if os.path.isdir(install_dir):
+            bin_dir = join(install_dir, 'venv/bin')
         else:
-            max_version = max(releases)
-            if float(version) < max([float(v) for v in releases]):
-                self.log('oh-my-vim %s is available', max_version)
+            bin_dir = os.path.dirname(sys.executable)
+            install_dir = None
 
-                with open(expanduser('~/.vimrc')) as fd:
-                    if 'ohmyvim_no_upgrade' in fd.read():
-                        return False
+        pip = join(bin_dir, 'pip')
 
-                if 'BUILDOUT_ORIGINAL_PYTHONPATH' in os.environ:
-                    self.log('Update your buildout then run:')
-                    self.log('%s upgrade --force', sys.argv[0])
-                    return False
+        if isfile(pip):
+            cmd = [pip, 'install', '-U', '--src=~/.vim/bundle/']
 
-                bindir = os.path.dirname(sys.executable)
-                pip = join(bindir, 'pip')
+            if install_dir:
+                bin_dir = join(install_dir, 'bin')
+                cmd.append(('--install-option="'
+                            '--install-scripts=%s"') % bin_dir)
 
-                cmd = []
+            cmd.append('-e "git+%s#egg=oh-my-vim' % GIT_URL)
 
-                if isfile(pip):
-                    cmd = [pip, 'install', '--upgrade', '--src=~/.vim/bundle/'
-                                '-e "git+%s#egg=oh-my-vim' % GIT_URL]
+            if expanduser('~/') not in cmd[0]:
+                cmd.insert(0, 'sudo')
 
-                if cmd:
-                    do_install = False
-                    if isdir('~/.oh-my-vim/bin/'):
-                        do_install = True
-                    elif 'MYVIMRC' not in os.environ:
-                        value = raw_input(
-                                    'Upgrading using %s ? [Y/n]' % cmd[0])
-                        if value.strip() in ('Y', 'y', ''):
-                            do_install = True
-                    if do_install:
-                        if expanduser('~/') not in cmd[0]:
-                            cmd.insert(0, 'sudo')
-                        p = Popen(cmd)
-                        p.wait()
-                        return True
+            if '__ohmyvim_test__' in os.environ:
+                self.log(' '.join(cmd))
+                return True
+            else:
+                p = Popen(cmd)
+                p.wait()
+                return True
 
-                self.log('Update it manualy then run:')
-                self.log('%s upgrade --force', sys.argv[0])
+        self.log('Dont know how to upgrade oh-my-zsh...')
+        self.log('Update it manualy then run:')
+        self.log('    $ %s upgrade --force', sys.argv[0])
 
     def search(self, args):
         terms = [t.strip() for t in args.term if t.strip()]
@@ -339,7 +330,7 @@ class Manager(object):
 
     def upgrade(self, args):
         self_name = 'oh-my-vim'
-        if self.self_upgrade() or args.force or 'oh-my-vim' in args.bundles:
+        if self.self_upgrade() or args.force or 'oh-my-vim' in args.bundle:
             self_name = '_'
         for b in self.get_bundles():
             if b.name in args.bundle or len(args.bundle) == 0:
@@ -443,6 +434,9 @@ def main(*args):
     p.add_argument('--raw', action='store_true', default=False)
     p.add_argument('theme', nargs='?', default='')
     p.set_defaults(action=manager.theme)
+
+    p = subparsers.add_parser('profiles', help='print all available profiles')
+    p.set_defaults(action=manager.profiles)
 
     p = subparsers.add_parser('version', help='print version')
     p.set_defaults(action=manager.version)

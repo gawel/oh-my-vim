@@ -4,22 +4,19 @@ from ohmyvim.scripts import main
 from os.path import isdir
 from os.path import isfile
 from os.path import join
-import shutil
+import subprocess
 import tempfile
+import shutil
 import os
 
 
-class TestOhMyVim(unittest.TestCase):
+class Mixin(object):
 
-    def setUp(self):
+    def setUpMixin(self):
         self.addCleanup(os.chdir, os.getcwd())
         self.wd = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, self.wd)
         os.environ['HOME'] = self.wd
-        os.environ['__ohmyvim_test__'] = '1'
-        self.requires = join(self.wd, 'deps.txt')
-        with open(self.requires, 'w') as fd:
-            fd.write('https://github.com/vim-scripts/github-theme.git\n\n')
 
     def assertIsFile(self, *args):
         filename = join(self.wd, *args)
@@ -35,6 +32,16 @@ class TestOhMyVim(unittest.TestCase):
 
     def assertResp(self, resp):
         self.assertTrue(len(resp) > 0, resp)
+
+
+class TestOhMyVim(unittest.TestCase, Mixin):
+
+    def setUp(self):
+        self.setUpMixin()
+        os.environ['__ohmyvim_test__'] = '1'
+        self.requires = join(self.wd, 'deps.txt')
+        with open(self.requires, 'w') as fd:
+            fd.write('https://github.com/vim-scripts/github-theme.git\n\n')
 
     def main(self, args):
         return main(*args.split(' '))
@@ -114,3 +121,25 @@ class TestOhMyVim(unittest.TestCase):
         resp = self.main('info vim-IPython')
         self.assertIn('https://github.com/vim-scripts/vim-ipython#readme',
                       resp)
+
+
+class TestInstall(unittest.TestCase, Mixin):
+
+    def setUp(self):
+        self.setUpMixin()
+
+        def setpath(path):
+            os.environ['PYTHONPATH'] = path
+
+        self.addCleanup(setpath, os.environ['PYTHONPATH'])
+        os.environ['PYTHONPATH'] = ''
+
+    def test_install(self):
+        script = os.path.join(
+                os.path.dirname(os.path.dirname(__file__)),
+                'tools', 'install.sh')
+        subprocess.Popen(script, shell=True).wait()
+        self.assertIsFile('.oh-my-vim/env/bin/python')
+        self.assertIsFile('.oh-my-vim/bin/oh-my-vim')
+        subprocess.Popen([os.path.join(self.wd, '.oh-my-vim/bin/oh-my-vim'),
+                          'upgrade']).wait()
