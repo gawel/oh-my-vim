@@ -201,7 +201,7 @@ class Manager(object):
 
         self.home = os.environ['HOME']
         self.vim = join(self.home, '.vim')
-        self.vimrs = join(self.home, '.vimrc')
+        self.vimrc = join(self.home, '.vimrc')
         self.runtime = join(self.vim, 'bundle')
         self.autoload = join(self.vim, 'autoload')
         self.ohmyvim = join(self.vim, 'ohmyvim')
