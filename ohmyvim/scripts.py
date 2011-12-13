@@ -227,7 +227,7 @@ class Manager(object):
         pip = join(bin_dir, 'pip')
 
         if isfile(pip):
-            cmd = [pip, 'install', '-U', '--src=~/.vim/bundle/']
+            cmd = [pip, 'install', '--src=~/.vim/bundle/']
 
             if install_dir:
                 bin_dir = join(install_dir, 'bin')
