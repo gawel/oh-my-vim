@@ -9,16 +9,16 @@ It's eavily inspired from `oh-my-zsh
 Installation
 ============
 
-It's recommended to install ``oh-my-vim`` as a non root user.
+It's recommended to install **oh-my-vim** as a non root user.
 
 If you don't know python and virtualenv then just run the install script::
 
     $ curl -O https://raw.github.com/gawel/oh-my-vim/master/tools/install.sh | sh -
 
 
-If you know virtualenv/pip then just run this in a virtualenv::
+If you know virtualenv/pip then run this in a virtualenv::
 
-    $ pip install --upgrade --src=~/.vim/bundle/ -e "git+https://github.com/gawel/oh-my-vim.git@master#egg=oh-my-vim"
+    $ pip install --src=~/.vim/bundle/ -e "git+https://github.com/gawel/oh-my-vim.git@master#egg=oh-my-vim"
     $ oh-my-vim version
 
 Have a look at your ``~/.vimrc``::
@@ -55,12 +55,9 @@ Generate a ``requires.txt`` file::
 
     $ oh-my-vim list -u > requires.txt
 
-Upgrade bundles::
+Upgrade bundles (and **oh-my-vim** python package)::
 
     $ oh-my-vim upgrade [bundle1|bundle2|...]
-
-To skip ``oh-my-vim`` upgrades add ``let ohmyvim_no_upgrade=1`` somewhere in
-your ``.vimrc``
 
 Useful links
 ============
@@ -71,6 +68,10 @@ Useful links
 
 FAQ
 ===
+
+**What if I already use ``pathogen`` ?**
+
+Nothing. Just remove the ``pathogen`` stuff from your ``vimrc``
 
 **Can I use oh-my-vim from Vim ?**
 
@@ -94,4 +95,8 @@ No. But you can. Fork the repository and submit a pull request.
 
 Submit a pull request after adding it to the `registry
 <https://github.com/gawel/oh-my-vim/blob/master/ohmyvim/config.ini>`_
+
+**Does oh-my-vim work on windows ?**
+
+No, it wont be so hard to port but I'm not supporting this OS
 
