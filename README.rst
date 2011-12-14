@@ -73,6 +73,23 @@ Useful links
 FAQ
 ===
 
+**I'm a newbie. Is oh-my-vim made me a Vim guru ?**
+
+No, but it can help you to setup a friendly environment.
+
+After the installation step install some `usefull
+<https://github.com/gawel/oh-my-vim/tree/master/tools/requires/usefull.txt>`_
+plugins with the following::
+
+    $ oh-my-vim install -d usefull
+
+Then have a look at the `defaults
+<https://github.com/gawel/oh-my-vim/tree/master/profiles/default.vim>`_ and
+`map <https://github.com/gawel/oh-my-vim/tree/master/profiles/default.vim>`_
+profiles and enable them in your ``.vimrc``
+
+You're now ready to go...!
+
 **What if I already use pathogen ?**
 
 Nothing. Just remove the ``pathogen`` stuff from your ``vimrc``
