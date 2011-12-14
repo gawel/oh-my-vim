@@ -137,7 +137,7 @@ class Bundle(object):
 
     def upgrade(self):
         self.log('Upgrading %s...', self.name)
-        if self.name == 'oh-my-vim':
+        if self.name.lower() == 'oh-my-vim':
             self.self_upgrade()
         else:
             os.chdir(self.dirname)
@@ -149,7 +149,7 @@ class Bundle(object):
                 p.wait()
 
     def self_upgrade(self):
-        """Try to upgrade itself if a new version is available"""
+        """Try to upgrade itself"""
         home = os.environ['HOME']
 
         branch = "master"
@@ -205,10 +205,11 @@ class Bundle(object):
                 return True
 
         os.chdir(self.dirname)
-        p = Popen(['git', 'pull', '-qn'], stdout=PIPE)
+        p = Popen(['git', 'pull', '-qn', 'origin', branch], stdout=PIPE)
+        p.wait()
 
-        self.log("Dont know how to upgrade oh-my-vim's python package...")
-        self.log('You may try to update it manualy')
+        self.log("! Dont know how to upgrade oh-my-vim's python package...")
+        self.log('! You may try to update it manualy')
 
 
 class Manager(object):

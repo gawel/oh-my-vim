@@ -18,7 +18,8 @@ cd $install_dir
 if ! [ -d "$install_dir/bin" ]
 then
     echo "Installing virtualenv..."
-    curl -sO https://raw.github.com/pypa/virtualenv/master/virtualenv.py
+    venvurl='https://raw.github.com/pypa/virtualenv/master/virtualenv.py'
+    curl -sO $venvurl || wget --no-check-certificate -c $venvurl
     $py virtualenv.py -q --distribute env
 fi
 

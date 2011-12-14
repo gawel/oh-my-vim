@@ -1,6 +1,6 @@
 " Paste your selected lines to friendpaste.org
 
-command! -nargs=0 -range FriendPaste :call FriendPaste()
+command! -nargs=0 -range=% FriendPaste :call FriendPaste()
 function! FriendPaste()
     let a:tmpfile = tempname()
     let a:bin = 'fpcli'
@@ -9,9 +9,15 @@ function! FriendPaste()
     endif
     if executable(a:bin)
         silent exe "'<,'>write! ".a:tmpfile
-        echo system(a:bin." ".a:tmpfile)
+        let a:out = system(a:bin." ".a:tmpfile)
         silent echo system("rm ".a:tmpfile)
+        let a:splitted = split(a:out, '\n')
+        if len(a:splitted) == 1
+            echo a:splitted[0]
+        else
+            echo a:out
+        endif
     else
-        echoerr 'fpcli is not in your PATH'
+        echo 'fpcli is not in your PATH'
     endif
 endfunction

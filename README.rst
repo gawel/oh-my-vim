@@ -15,6 +15,10 @@ If you don't know python and virtualenv then just run the install script::
 
     $ curl -O https://raw.github.com/gawel/oh-my-vim/master/tools/install.sh | sh -
 
+Or with wget::
+
+    $ wget --no-check-certificate -O- https://raw.github.com/gawel/oh-my-vim/master/tools/install.sh | sh -
+
 
 If you know virtualenv/pip then run this in a virtualenv::
 
