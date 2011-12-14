@@ -15,20 +15,24 @@ import sys
 import os
 
 VIMRC = '''
-" added by oh-my-vim
+" Added by oh-my-vim
 
-" path to oh-my-vim binary (take care of it if you are using a virtualenv)
+" Path to oh-my-vim binary (take care of it if you are using a virtualenv)
 let g:ohmyvim="%(binary)s"
 
-" Use :OhMyVim profiles to list all available profiles
+" Skip upgrade of oh-my-vim itself during upgrades
+" let g:ohmyvim_skip_upgrade=1
+
+" Use :OhMyVim profiles to list all available profiles with a description
+" let profiles = %(profiles)r
 let profiles = ['defaults']
 
 " load oh-my-vim
 source %(ohmyvim)s
 
-" end of oh-my-vim required stuff
+" End of oh-my-vim required stuff
 
-" put your custom stuff bellow
+" Put your custom stuff bellow
 
 '''
 
@@ -153,9 +157,10 @@ class Bundle(object):
             for line in fd:
                 line = line.strip()
                 if not line.startswith('"'):
-                    if 'ohmyvim_skip_upgrade' in line:
-                        if int(line.split('=').strip()):
-                            self.log('ohmyvim_skip_upgrade set. skipping...')
+                    if 'ohmyvim_skip_upgrade' in line and '=' in line:
+                        if int(line.split('=', 1)[1].strip()):
+                            line = line.replace('let', '').strip()
+                            self.log('Skipping. vimrc contains %s' % line)
                             return
                     elif 'ohmyvim_version' in line:
                         branch = line.split('=').strip()
@@ -184,11 +189,13 @@ class Bundle(object):
                 cmd.append(('--install-option='
                             '--script-dir==%s') % bin_dir)
 
-            cmd.extend(['-e', 'git+%s@%s#egg=oh-my-vim' % (GIT_URL, branch)])
+            cmd.extend(['-e',
+                        'git+%s@%s#egg=oh-my-vim' % (self.remote, branch)])
 
             if home not in cmd[0]:
                 cmd.insert(0, 'sudo')
 
+            self.log('Upgrading to %s' % branch)
             if '__ohmyvim_test__' in os.environ:
                 self.log(' '.join(cmd))
                 return True
@@ -197,7 +204,10 @@ class Bundle(object):
                 p.wait()
                 return True
 
-        self.log('Dont know how to upgrade oh-my-vim...')
+        os.chdir(self.dirname)
+        p = Popen(['git', 'pull', '-qn'], stdout=PIPE)
+
+        self.log("Dont know how to upgrade oh-my-vim's python package...")
         self.log('You may try to update it manualy')
 
 
@@ -245,15 +255,30 @@ class Manager(object):
             binary = join(os.getenv('VIRTUAL_ENV'), 'bin', 'oh-my-vim')
         else:
             binary = 'oh-my-vim'
-        kw = dict(ohmyvim=ohmyvim, binary=binary)
+
+        need_update = False
         if not isfile(self.vimrc):
-            with open(self.vimrc, 'w') as fd:
-                fd.write(VIMRC % kw)
+            need_update = True
         else:
             with open(self.vimrc) as fd:
                 if ohmyvim not in fd.read():
-                    with open(self.vimrc, 'a') as fd:
-                        fd.write(VIMRC % kw)
+                    need_update = True
+
+        if need_update:
+            if isfile(self.vimrc):
+                with open(self.vimrc, 'r') as fd:
+                    data = fd.read()
+                with open(join(self.ohmyvim, 'vimrc.bak'), 'w') as fd:
+                    fd.write(data)
+            else:
+                data = ''
+            kw = dict(
+                    ohmyvim=ohmyvim,
+                    binary=binary,
+                    profiles=self.profiles(None, as_list=True))
+            with open(self.vimrc, 'w') as fd:
+                fd.write(VIMRC % kw)
+                fd.write(data)
 
     def log(self, value, *args):
         if args:
@@ -381,9 +406,12 @@ class Manager(object):
                         self.log('* %s (%s)', b.name, b.remote)
                         self.log('\t- %s', ', '.join(themes))
 
-    def profiles(self, args):
+    def profiles(self, args, as_list=False):
         profiles = join(self.runtime, 'oh-my-vim', 'profiles')
         profiles = glob(join(profiles, '*.vim'))
+
+        if as_list:
+            return sorted([basename(name)[:-4] for name in profiles])
 
         for profile in sorted(profiles):
             name = basename(profile)[:-4]
