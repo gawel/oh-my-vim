@@ -25,7 +25,7 @@ fi
 
 ! [ -d $bundles ] && mkdir -p $bundles
 
-source $install_dir/env/bin/activate
+source $install_dir/env/bin/activate || . $install_dir/env/bin/activate
 
 echo "Installing dependencies..."
 pip install -q ConfigObject argparse
