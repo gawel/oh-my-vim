@@ -1,0 +1,11 @@
+# requirements for python coders
+git+https://github.com/bronson/vim-trailing-whitespace.git
+git+https://github.com/vim-scripts/bufexplorer.zip.git
+git+https://github.com/sophacles/vim-bundle-mako.git
+git+https://github.com/vim-scripts/github-theme.git
+git+https://github.com/vim-scripts/django.vim.git
+git+https://github.com/vim-scripts/python.vim.git
+git+https://github.com/msanders/snipmate.vim.git
+git+https://github.com/scrooloose/syntastic.git
+git+https://github.com/scrooloose/nerdtree.git
+git+https://github.com/othree/xml.vim.git

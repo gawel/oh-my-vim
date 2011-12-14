@@ -17,8 +17,8 @@ import os
 VIMRC = '''
 " Added by oh-my-vim
 
-" Path to oh-my-vim binary (take care of it if you are using a virtualenv)
-let g:ohmyvim="%(binary)s"
+" Change the default leader
+" let mapleader = ","
 
 " Skip upgrade of oh-my-vim itself during upgrades
 " let g:ohmyvim_skip_upgrade=1
@@ -26,6 +26,9 @@ let g:ohmyvim="%(binary)s"
 " Use :OhMyVim profiles to list all available profiles with a description
 " let profiles = %(profiles)r
 let profiles = ['defaults']
+
+" Path to oh-my-vim binary (take care of it if you are using a virtualenv)
+let g:ohmyvim="%(binary)s"
 
 " load oh-my-vim
 source %(ohmyvim)s
@@ -119,7 +122,7 @@ class Bundle(object):
         if use_git:
             name = basename(url)[:-4]
             dirname = join(manager.runtime, name)
-            cmd = ['git', 'clone', '-q', url, dirname]
+            cmd = ['git', 'clone', '-q', '-b', 'master', url, dirname]
         elif use_hg:
             name = basename(url.strip('/'))
             dirname = join(manager.runtime, name)
@@ -142,7 +145,8 @@ class Bundle(object):
         else:
             os.chdir(self.dirname)
             if self.use_git:
-                p = Popen(['git', 'pull', '-qn'], stdout=PIPE)
+                p = Popen(['git', 'pull', '-qn', 'origin', 'master'],
+                           stdout=PIPE)
                 p.wait()
             elif self.use_hg:
                 p = Popen(['hg', 'pull', '-qu'], stdout=PIPE)
@@ -348,22 +352,42 @@ class Manager(object):
 
     def install(self, args):
         config = get_config()
+        requires = join(os.path.dirname(__file__),
+                        '..', 'tools',
+                        'requires')
         if args.raw:
-            for name in sorted(config.bundles.keys()):
-                self.log(name)
-            for name in sorted(config.vimscripts.keys()):
-                self.log(name)
+            if args.dist:
+                for require in glob(join(requires, '*.txt')):
+                    name = basename(require)[:-4]
+                    if name != 'gawel':
+                        print name
+            else:
+                for name in sorted(config.bundles.keys()):
+                    self.log(name)
+                for name in sorted(config.vimscripts.keys()):
+                    self.log(name)
         else:
+            if args.dist:
+                if not isinstance(args.url, list):
+                    args.url = []
+                args.url.append(join(requires, '%s.txt', args.dist))
+
             dependencies = set()
             for url in args.url:
+                print url
                 if url.endswith('.txt'):
                     if isfile(url):
                         with open(url) as fd:
-                            dependencies = [d for d in fd.readlines()]
+                            for dep in fd:
+                                dep = dep.strip()
+                                if dep and not dep.startswith('#'):
+                                    dependencies.add(dep)
                     elif url.startswith('http'):
                         fd = urlopen(url)
-                        dependencies = dependencies.union(
-                                            set([d for d in fd.readlines()]))
+                        for dep in fd.readlines():
+                            dep = dep.strip()
+                            if dep and not dep.startswith('#'):
+                                dependencies.add(dep)
                 else:
                     b = Bundle.install(self, url)
                     if b:
@@ -463,6 +487,8 @@ def main(*args):
 
     p = subparsers.add_parser('install', help='install a script or bundle')
     p.add_argument('--raw', action='store_true', default=False)
+    p.add_argument('-d', '--dist', default=None,
+                                   help="install a distribution")
     p.add_argument('url', nargs='*', default='')
     p.set_defaults(action=manager.install)
 
