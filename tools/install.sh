@@ -1,5 +1,5 @@
 #!/bin/sh
-py=$(which python2.6 || which python2.7)
+py=`which python2.6 || which python2.7`
 
 if ! [ -x $py ]
 then
@@ -17,7 +17,7 @@ cd $install_dir
 
 if ! [ -d "$install_dir/bin" ]
 then
-    echo "Installing virtualenv..."
+    echo "Installing virtualenv using $py..."
     venvurl='https://raw.github.com/pypa/virtualenv/master/virtualenv.py'
     curl -sO $venvurl || wget --no-check-certificate -c $venvurl
     $py virtualenv.py -q --distribute env
@@ -36,15 +36,13 @@ pip install -q --src="$HOME/.vim/bundle/" \
     -e "git+https://github.com/gawel/oh-my-vim.git@master#egg=oh-my-vim"
 
 $install_dir/bin/oh-my-vim version > /dev/null
-version=$($install_dir/bin/oh-my-vim version)
+version=`$install_dir/bin/oh-my-vim version`
 
-echo ""
-echo "=========================================================="
 echo "Sucessfully installed oh-my-vim $version to $install_dir"
 echo "Binary can be found at $install_dir/$ohmyvim"
 
 function add_path() {
-    if [ "$(grep $install_dir $1)" == "" ]
+    if [ `grep $install_dir $1` == "" ]
     then
         echo "Adding $install_dir/bin to \$PATH in $1"
         cat << EOF >> $1
@@ -71,5 +69,4 @@ else
     echo "    export PATH=\$PATH:$install_dir/bin"
 fi
 echo ""
-echo "========================================================"
 

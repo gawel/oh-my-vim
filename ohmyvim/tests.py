@@ -141,7 +141,7 @@ class TestInstall(unittest.TestCase, Mixin):
         script = os.path.join(
                 os.path.dirname(os.path.dirname(__file__)),
                 'tools', 'install.sh')
-        subprocess.Popen(script, shell=True).wait()
+        subprocess.Popen('sh %s' % script, shell=True).wait()
         self.assertIsFile('.oh-my-vim/env/bin/python')
         self.assertIsFile('.oh-my-vim/bin/oh-my-vim')
         subprocess.Popen(' '.join(
