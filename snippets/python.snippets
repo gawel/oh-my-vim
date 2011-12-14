@@ -5,6 +5,11 @@ snippet from
 snippet ret
 	return ${1:value}
 
+snippet with
+	with open(${1:filename}${2:,'w'}) as ${3:fd}:
+		for line in fd:
+			${4}
+
 snippet fin
 	[${1:item} for ${2:$1} in ${3}]
 
