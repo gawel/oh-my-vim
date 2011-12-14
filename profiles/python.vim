@@ -9,8 +9,8 @@ augroup python
     au BufNewFile,BufRead *.?py,*.py,*.py_tmpl call PythonBinding()
     au BufWinEnter *.?py,*.py,*.py_tmpl let b:longline1=matchadd('Search', '\%<80v.\%>76v', -1)
     au BufWinEnter *.?py,*.py,*.py_tmpl let b:longline2=matchadd('ErrorMsg', '\%>79v.\+', -1)
-    au BufWinLeave *.?py,*.py,*.py_tmpl call matchdelete(b:longline1)
-    au BufWinLeave *.?py,*.py,*.py_tmpl call matchdelete(b:longline2)
+    au BufWinLeave *.?py,*.py,*.py_tmpl try | call matchdelete(b:longline1) | catch /*/ | echo "" | endtry
+    au BufWinLeave *.?py,*.py,*.py_tmpl try | call matchdelete(b:longline2) | catch /*/ | echo "" | endtry
 augroup END
 
 function! PythonBinding()
