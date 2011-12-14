@@ -85,7 +85,7 @@ plugins with the following::
 
 Then have a look at the `defaults
 <https://github.com/gawel/oh-my-vim/tree/master/profiles/default.vim>`_ and
-`map <https://github.com/gawel/oh-my-vim/tree/master/profiles/default.vim>`_
+`map <https://github.com/gawel/oh-my-vim/tree/master/profiles/map.vim>`_
 profiles and enable them in your ``.vimrc``
 
 You're now ready to go...!
@@ -104,10 +104,6 @@ Yes. You just need to prefix your url with ``hg+``::
 
   $ oh-my-vim install hg+https://bitbucket.org/sjl/gundo.vim
 
-**This is a great project. Can I offer you a beer ?**
-
-Sure.
-
 **Good project but I'm missing a feature. Can you add it ?**
 
 No. But you can. Fork the repository and submit a pull request.
@@ -120,4 +116,8 @@ Submit a pull request after adding it to the `registry
 **Does oh-my-vim work on windows ?**
 
 No, it wont be so hard to port but I'm not supporting this OS
+
+**This is a great project. Can I offer you a beer ?**
+
+Sure.
 
