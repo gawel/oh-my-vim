@@ -146,12 +146,25 @@ class Bundle(object):
 
     def self_upgrade(self):
         """Try to upgrade itself if a new version is available"""
+        home = os.environ['HOME']
+
+        branch = "master"
+        with open(join(home, '.vimrc')) as fd:
+            for line in fd:
+                line = line.strip()
+                if not line.startswith('"'):
+                    if 'ohmyvim_skip_upgrade' in line:
+                        if int(line.split('=').strip()):
+                            self.log('ohmyvim_skip_upgrade set. skipping...')
+                            return
+                    elif 'ohmyvim_version' in line:
+                        branch = line.split('=').strip()
+
         if 'BUILDOUT_ORIGINAL_PYTHONPATH' in os.environ:
             self.log('Update your buildout then run:')
             self.log('    $ %s upgrade --force', sys.argv[0])
             return False
 
-        home = os.environ['HOME']
         install_dir = join(home, '.oh-my-vim/')
         if os.path.isdir(install_dir):
             bin_dir = join(install_dir, 'env', 'bin')
@@ -171,7 +184,7 @@ class Bundle(object):
                 cmd.append(('--install-option='
                             '--script-dir==%s') % bin_dir)
 
-            cmd.extend(['-e', 'git+%s@master#egg=oh-my-vim' % GIT_URL])
+            cmd.extend(['-e', 'git+%s@%s#egg=oh-my-vim' % (GIT_URL, branch)])
 
             if home not in cmd[0]:
                 cmd.insert(0, 'sudo')
@@ -185,8 +198,7 @@ class Bundle(object):
                 return True
 
         self.log('Dont know how to upgrade oh-my-vim...')
-        self.log('Update it manualy then run:')
-        self.log('    $ %s upgrade --force', sys.argv[0])
+        self.log('You may try to update it manualy')
 
 
 class Manager(object):
@@ -230,7 +242,7 @@ class Manager(object):
                 fd.write('source %s\n' % join(self.ohmyvim, 'theme.vim'))
 
         if 'VIRTUAL_ENV' in os.environ:
-            binary = join(os.getenv('VIRTUAL_ENV'), 'oh-my-vim')
+            binary = join(os.getenv('VIRTUAL_ENV'), 'bin', 'oh-my-vim')
         else:
             binary = 'oh-my-vim'
         kw = dict(ohmyvim=ohmyvim, binary=binary)

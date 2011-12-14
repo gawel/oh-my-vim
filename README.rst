@@ -18,8 +18,8 @@ If you don't know python and virtualenv then just run the install script::
 
 If you know virtualenv/pip then run this in a virtualenv::
 
-    $ pip install --src=~/.vim/bundle/ -e "git+https://github.com/gawel/oh-my-vim.git@master#egg=oh-my-vim"
-    $ oh-my-vim version
+    $ pip install oh-my-vim
+    $ bin/oh-my-vim upgrade
 
 Have a look at your ``~/.vimrc``::
 
@@ -69,7 +69,7 @@ Useful links
 FAQ
 ===
 
-**What if I already use ``pathogen`` ?**
+**What if I already use pathogen ?**
 
 Nothing. Just remove the ``pathogen`` stuff from your ``vimrc``
 
