@@ -3,7 +3,7 @@ Oh My Vim!
 
 This package allow you to manage your vim plugins
 
-It's eavily inspired from `oh-my-zsh
+It's heavily inspired from `oh-my-zsh
 <https://github.com/robbyrussell/oh-my-zsh>`_
 
 Installation
@@ -73,7 +73,7 @@ Useful links
 FAQ
 ===
 
-**I'm a newbie. Is oh-my-vim made me a Vim guru ?**
+**I'm a newbie. Can oh-my-vim turn me into a Vim guru ?**
 
 No, but it can help you to setup a friendly environment.
 
