@@ -41,6 +41,8 @@ source %(ohmyvim)s
 
 GIT_URL = "https://github.com/gawel/oh-my-vim.git"
 
+TOOLS = join(os.path.dirname(__file__), '..', 'tools')
+
 
 class Bundle(object):
 
@@ -51,6 +53,7 @@ class Bundle(object):
         self.use_git = isdir(join(dirname, '.git'))
         self.use_hg = isdir(join(dirname, '.hg'))
         self.valid = self.use_hg or self.use_git
+        self.home = os.environ['HOME']
 
     def log(self, *args):
         self.manager.log(*args)
@@ -96,7 +99,7 @@ class Bundle(object):
         return url
 
     @classmethod
-    def install(cls, manager, url):
+    def install(cls, manager, args, url):
         url = cls.resolve_url(url)
 
         use_hg = False
@@ -136,6 +139,8 @@ class Bundle(object):
             manager.log('Installing %s...', name)
             Popen(cmd).wait()
             b = cls(manager, dirname)
+            if args.full:
+                b.post_install()
             return b
 
     def upgrade(self):
@@ -152,12 +157,36 @@ class Bundle(object):
                 p = Popen(['hg', 'pull', '-qu'], stdout=PIPE)
                 p.wait()
 
+    def get_pip(self):
+        install_dir = join(self.home, '.oh-my-vim/')
+        if os.path.isdir(install_dir):
+            bin_dir = join(install_dir, 'env', 'bin')
+        else:
+            bin_dir = os.path.dirname(sys.executable)
+            pip = join(bin_dir, 'pip')
+        pip = join(bin_dir, 'pip')
+        if os.path.isfile(pip):
+            return pip
+        return ''
+
+    def post_install(self):
+        script = join(TOOLS, 'post_install', '%s.sh' % self.name)
+        env = os.environ
+        if 'PIP' not in env:
+            env['PIP'] = self.get_pip()
+        env['GIT_DIR'] = self.dirname
+        env['NAME'] = self.name
+        env['VIM_ENV'] = join(self.home, '.vim', 'ohmyvim', 'env.vim')
+        if isfile(script):
+            self.log('Running post install script...')
+            os.chdir(self.dirname)
+            p = Popen([script], env=env)
+            p.wait()
+
     def self_upgrade(self):
         """Try to upgrade itself"""
-        home = os.environ['HOME']
-
         branch = "master"
-        with open(join(home, '.vimrc')) as fd:
+        with open(join(self.home, '.vimrc')) as fd:
             for line in fd:
                 line = line.strip()
                 if not line.startswith('"'):
@@ -174,19 +203,18 @@ class Bundle(object):
             self.log('    $ %s upgrade --force', sys.argv[0])
             return False
 
-        install_dir = join(home, '.oh-my-vim/')
-        if os.path.isdir(install_dir):
-            bin_dir = join(install_dir, 'env', 'bin')
-        else:
-            bin_dir = os.path.dirname(sys.executable)
-            pip = join(bin_dir, 'pip')
-            install_dir = None
+        pip = self.get_pip()
 
-        pip = join(bin_dir, 'pip')
+        if pip:
+            install_dir = join(self.home, '.oh-my-vim/')
+            if os.path.isdir(install_dir):
+                bin_dir = join(install_dir, 'env', 'bin')
+            else:
+                bin_dir = os.path.dirname(sys.executable)
+                install_dir = None
 
-        if isfile(pip):
             cmd = [pip, 'install', '-q',
-                   '--src=%s' % join(home, '.vim', 'bundle')]
+                   '--src=%s' % join(self.home, '.vim', 'bundle')]
 
             if install_dir:
                 bin_dir = join(install_dir, 'bin')
@@ -196,7 +224,7 @@ class Bundle(object):
             cmd.extend(['-e',
                         'git+%s@%s#egg=oh-my-vim' % (self.remote, branch)])
 
-            if home not in cmd[0]:
+            if self.home not in cmd[0]:
                 cmd.insert(0, 'sudo')
 
             self.log('Upgrading to %s' % branch)
@@ -248,13 +276,17 @@ class Manager(object):
             with open(join(self.ohmyvim, 'theme.vim'), 'w') as fd:
                 fd.write('')
 
+        if not isfile(join(self.ohmyvim, 'env.vim')):
+            with open(join(self.ohmyvim, 'env.vim'), 'w') as fd:
+                fd.write('set path+=$HOME/.oh-my-vim/bin\n')
+
         ohmyvim = join(self.ohmyvim, 'ohmyvim.vim')
-        if not isfile(ohmyvim):
-            with open(ohmyvim, 'w') as fd:
-                fd.write('source %s\n' % join(self.runtime, 'vim-pathogen',
-                                                   'autoload', 'pathogen.vim'))
-                fd.write('call pathogen#runtime_append_all_bundles()\n')
-                fd.write('source %s\n' % join(self.ohmyvim, 'theme.vim'))
+        with open(ohmyvim, 'w') as fd:
+            fd.write('source %s\n' % join(self.ohmyvim, 'env.vim'))
+            fd.write('source %s\n' % join(self.runtime, 'vim-pathogen',
+                                               'autoload', 'pathogen.vim'))
+            fd.write('call pathogen#runtime_append_all_bundles()\n')
+            fd.write('source %s\n' % join(self.ohmyvim, 'theme.vim'))
 
         if 'VIRTUAL_ENV' in os.environ:
             binary = join(os.getenv('VIRTUAL_ENV'), 'bin', 'oh-my-vim')
@@ -352,15 +384,13 @@ class Manager(object):
 
     def install(self, args):
         config = get_config()
-        requires = join(os.path.dirname(__file__),
-                        '..', 'tools',
-                        'requires')
+        requires = join(TOOLS, 'requires')
         if args.raw:
             if args.dist:
                 for require in glob(join(requires, '*.txt')):
                     name = basename(require)[:-4]
                     if name != 'gawel':
-                        print name
+                        self.log(name)
             else:
                 for name in sorted(config.bundles.keys()):
                     self.log(name)
@@ -374,7 +404,6 @@ class Manager(object):
 
             dependencies = set()
             for url in args.url:
-                print url
                 if url.endswith('.txt'):
                     if isfile(url):
                         with open(url) as fd:
@@ -389,14 +418,14 @@ class Manager(object):
                             if dep and not dep.startswith('#'):
                                 dependencies.add(dep)
                 else:
-                    b = Bundle.install(self, url)
+                    b = Bundle.install(self, args, url)
                     if b:
                         dependencies = dependencies.union(b.dependencies)
             if dependencies:
                 self.log('Processing dependencies...')
                 for url in dependencies:
                     if url.strip():
-                        b = Bundle.install(self, url.strip())
+                        b = Bundle.install(self, args, url.strip())
 
     def upgrade(self, args):
         for b in self.get_bundles():
@@ -487,6 +516,8 @@ def main(*args):
 
     p = subparsers.add_parser('install', help='install a script or bundle')
     p.add_argument('--raw', action='store_true', default=False)
+    p.add_argument('-f', '--full', default=None,
+                         help="also install required softwares and binaris")
     p.add_argument('-d', '--dist', default=None,
                                    help="install a distribution")
     p.add_argument('url', nargs='*', default='')
