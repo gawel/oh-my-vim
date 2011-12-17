@@ -199,8 +199,7 @@ class Bundle(object):
                         branch = line.split('=').strip()
 
         if 'BUILDOUT_ORIGINAL_PYTHONPATH' in os.environ:
-            self.log('Update your buildout then run:')
-            self.log('    $ %s upgrade --force', sys.argv[0])
+            self.log('Update your buildout')
             return False
 
         pip = self.get_pip()
@@ -517,14 +516,13 @@ def main(*args):
     p = subparsers.add_parser('install', help='install a script or bundle')
     p.add_argument('--raw', action='store_true', default=False)
     p.add_argument('-f', '--full', default=None,
-                         help="also install required softwares and binaris")
+                         help="also install required softwares and binaries")
     p.add_argument('-d', '--dist', default=None,
                                    help="install a distribution")
     p.add_argument('url', nargs='*', default='')
     p.set_defaults(action=manager.install)
 
     p = subparsers.add_parser('upgrade', help='upgrade bundles')
-    p.add_argument('--force', action='store_true', default=False)
     p.add_argument('bundle', nargs='*', default='')
     p.set_defaults(action=manager.upgrade)
 
