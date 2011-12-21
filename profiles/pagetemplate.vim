@@ -1,7 +1,7 @@
 " helpers for zope page templates
 
 augroup zpt
-    au BufNewFile,BufRead *.?pt,*.pt setf html.xml
+    au BufNewFile,BufRead *.?pt,*.pt setf xhtml
     au BufNewFile,BufRead *.?pt,*.pt silent call PagetemplatesBindings
 augroup END
 

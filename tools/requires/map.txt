@@ -1,0 +1,2 @@
+git+https://github.com/scrooloose/nerdtree.git
+git+https://github.com/vim-scripts/bufexplorer.zip.git

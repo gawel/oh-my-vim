@@ -1,0 +1,2 @@
+https://github.com/robhudson/snipmate_for_django.git
+https://github.com/vim-scripts/django.vim.git
