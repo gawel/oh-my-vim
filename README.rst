@@ -41,7 +41,13 @@ Browse all VimL projects available on github in your favorite browser::
 Installation. You can use a git url or a ``requires.txt`` file/url wich
 contains git urls::
 
-    $ oh-my-vim install [giturl|requires.txt]
+    $ oh-my-vim install [--full] [giturl|requires.txt]
+
+The ``--full`` options allow to install some extra dependencies. For example
+`syntastic <https://github.com/scrooloose/syntastic#readme>`_ require `flake8
+<http://pypi.python.org/pypi/flake8>`_ and `jslint
+<https://github.com/reid/node-jslint>`_. **oh-my-vim** will try to install them
+for you.
 
 Remove a bundle::
 
@@ -61,7 +67,7 @@ Generate a ``requires.txt`` file::
 
 Upgrade bundles (and **oh-my-vim** python package)::
 
-    $ oh-my-vim upgrade [bundle1|bundle2|...]
+    $ oh-my-vim upgrade [--full] [bundle1|bundle2|...]
 
 Useful links
 ============
