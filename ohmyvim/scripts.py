@@ -143,7 +143,7 @@ class Bundle(object):
                 b.post_install()
             return b
 
-    def upgrade(self):
+    def upgrade(self, args):
         self.log('Upgrading %s...', self.name)
         if self.name.lower() == 'oh-my-vim':
             self.self_upgrade()
@@ -156,6 +156,8 @@ class Bundle(object):
             elif self.use_hg:
                 p = Popen(['hg', 'pull', '-qu'], stdout=PIPE)
                 p.wait()
+            if args.full:
+                self.post_install()
 
     def get_pip(self):
         install_dir = join(self.home, '.oh-my-vim/')
@@ -171,6 +173,8 @@ class Bundle(object):
 
     def post_install(self):
         script = join(TOOLS, 'post_install', '%s.sh' % self.name)
+        if not isfile(script):
+            script = join(self.dirname, 'post_install.sh')
         env = os.environ
         if 'PIP' not in env:
             env['PIP'] = self.get_pip()
@@ -429,12 +433,13 @@ class Manager(object):
     def upgrade(self, args):
         for b in self.get_bundles():
             if b.name in args.bundle or len(args.bundle) == 0:
-                b.upgrade()
+                b.upgrade(args)
 
     def remove(self, args):
         if args.bundle:
+            bundles = [b.lower() for b in args.bundle]
             for b in self.get_bundles():
-                if b.name in args.bundle:
+                if b.name.lower() in bundles:
                     if b.name in self.dependencies:
                         self.log("Don't remove %s!", b.name)
                     self.log('Removing %s...', b.name)
@@ -523,6 +528,8 @@ def main(*args):
     p.set_defaults(action=manager.install)
 
     p = subparsers.add_parser('upgrade', help='upgrade bundles')
+    p.add_argument('-f', '--full', default=None,
+                         help="also install required softwares and binaries")
     p.add_argument('bundle', nargs='*', default='')
     p.set_defaults(action=manager.upgrade)
 
