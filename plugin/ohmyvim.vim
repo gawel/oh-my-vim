@@ -47,6 +47,7 @@ function! OhMyVimCmpl(A,L,P)
     return "\n"
 endfunction
 
+
 function! OhMyVimProfiles()
     for profile in g:profiles
         let a:filename="~/.vim/bundle/oh-my-vim/profiles/".profile.".vim"
@@ -54,9 +55,11 @@ function! OhMyVimProfiles()
     endfor
 endfunction
 
+
 if exists("g:profiles")
     call OhMyVimProfiles()
 endif
+
 
 if exists(g:ohmyvim) == 0
     if executable('oh-my-vim')
