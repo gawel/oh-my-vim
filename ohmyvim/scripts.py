@@ -403,7 +403,7 @@ class Manager(object):
             if args.dist:
                 if not isinstance(args.url, list):
                     args.url = []
-                args.url.append(join(requires, '%s.txt', args.dist))
+                args.url.append(join(requires, '%s.txt' % args.dist))
 
             dependencies = set()
             for url in args.url:
