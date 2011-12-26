@@ -9,6 +9,9 @@ augroup python
     au BufWinEnter *.py,*.py_tmpl let w:longline1=matchadd('Search', '\%<80v.\%>76v', -1)
     au BufWinEnter *.py,*.py_tmpl let w:longline2=matchadd('ErrorMsg', '\%>79v.\+', -1)
     au BufWinLeave *.py,*.py_tmpl call clearmatches()
+
+    au BufNewFile,BufRead *.rst setf rst
+    au BufNewFile,BufRead *.txt call RstDetect()
 augroup END
 
 function! PythonBinding()
@@ -16,3 +19,14 @@ function! PythonBinding()
     imap <buffer> ixx import ipdb;ipdb.set_trace()
 endfunction
 
+function! RstDetect()
+    for line in getline(1, 3)
+        if line =~ '^========'
+            setlocal filetype=rst
+            break
+        elseif line =~ '^.. \w\+'
+            setlocal filetype=rst
+            break
+        endif
+    endfor
+endfunction
