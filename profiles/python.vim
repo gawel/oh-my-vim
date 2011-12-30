@@ -12,6 +12,9 @@ augroup python
 
     au BufNewFile,BufRead *.rst setf rst
     au BufNewFile,BufRead *.txt call RstDetect()
+
+    au BufNewFile,BufRead *.mako setf mako
+    au BufNewFile,BufRead *.mak call MakoDetect()
 augroup END
 
 function! PythonBinding()
@@ -26,6 +29,15 @@ function! RstDetect()
             break
         elseif line =~ '^.. \w\+'
             setlocal filetype=rst
+            break
+        endif
+    endfor
+endfunction
+
+function! MakoDetect()
+    for line in getline(1, 2)
+        if line =~ '^## -*-'
+            setlocal filetype=mako
             break
         endif
     endfor
