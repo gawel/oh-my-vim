@@ -1,34 +1,26 @@
 # python
 snippet from
 	from ${1:module} import ${2:function}
-
 snippet ret
 	return ${1:value}
-
 snippet with
 	with open(${1:filename}${2:,'w'}) as ${3:fd}:
 		for line in fd:
 			${4}
-
 snippet fin
 	[${1:item} for ${2:$1} in ${3}]
-
 snippet finif
 	[${1:item} for ${2:$1} in ${3} if ${4:$1}]
-
 snippet pdb
 	import pdb; pdb.set_trace()
-
 snippet ipdb
 	import ipdb; ipdb.set_trace()
-
 snippet dec @decoracor
 	def ${1:decorator}(func):
 		@functools.wraps(func)
 		def wrapper(${2:*args, **kwargs}):
 			return func(${3:$2})
 		return wrapper
-
 snippet dec @decorator('arg')
 	def ${1:decorator}(${2}):
 		def wrapper(func):
@@ -37,7 +29,6 @@ snippet dec @decorator('arg')
 				return func(${4:$3})
 			return wrapped
 		return wrapper
-
 snippet prop
 	class ${1:prop}(property):
 		"""${2:docstring for $1}"""
@@ -47,20 +38,15 @@ snippet prop
 			${3:pass}
 		def __set__(self, instance, value):
 			${4:pass}
-
 # webapp
 snippet view
 	def ${1:myview}(request):
 		${2}
-
 snippet env
 	request.environ${1:.get("")}
-
 snippet POST
 	request.POST${1:.get("")}
-
 snippet GET
 	request.GET${1:.get("")}
-
 snippet match
 	request.matchdict${1:.get("")}

@@ -1,23 +1,17 @@
 # utils
-
 snippet route
 	config.add_route("${1:name}", "${2:/path}")
-
 snippet vc
 	@view_config(route_name="${1}", renderer="${2:json}")
-
 snippet rurl
 	request.route_url('${1}')
-
 # events
-
 snippet event ApplicationCreated
 	from pyramid.events import ApplicationCreated
 	from pyramid.events import subscriber
 	@subscriber(ApplicationCreated)
 	def ${1:mysubscriber}(event):
 		${2:print event}
-
 snippet event NewRequest
 	from pyramid.events import NewRequest
 	from pyramid.events import subscriber
@@ -25,18 +19,15 @@ snippet event NewRequest
 	def ${1:mysubscriber}(event):
 		request = event.request
 		${2:request.foo = 1}
-
 snippet event NewResponse
 	from pyramid.events import NewResponse
 	from pyramid.events import subscriber
 	@subscriber(NewResponse)
 	def ${1:mysubscriber}(event):
 		${2:print event}
-
 snippet event BeforeRender
 	from pyramid.events import BeforeRender
 	from pyramid.events import subscriber
 	@subscriber(BeforeRender)
 	def ${1:mysubscriber}(event):
 		${2:event['mykey'] = 'foo'}
-
