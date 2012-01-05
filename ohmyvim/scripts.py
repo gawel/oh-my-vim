@@ -39,6 +39,22 @@ source %(ohmyvim)s
 
 '''
 
+GVIMRC = '''
+" uncomment this to set a font
+" set guifont="Menlo Regular:h11"
+
+" no bell
+set noerrorbells
+
+" window size
+if exists(':win')
+    win 150 50
+endif
+
+" remove menu and toolbar. see help guioptions
+set guioptions=aegirlt
+'''
+
 GIT_URL = "https://github.com/gawel/oh-my-vim.git"
 
 TOOLS = join(os.path.dirname(__file__), '..', 'tools')
@@ -260,6 +276,7 @@ class Manager(object):
         self.home = os.environ['HOME']
         self.vim = join(self.home, '.vim')
         self.vimrc = join(self.home, '.vimrc')
+        self.gvimrc = join(self.home, '.gvimrc')
         self.runtime = join(self.vim, 'bundle')
         self.autoload = join(self.vim, 'autoload')
         self.ohmyvim = join(self.vim, 'ohmyvim')
@@ -319,6 +336,11 @@ class Manager(object):
             with open(self.vimrc, 'w') as fd:
                 fd.write(VIMRC % kw)
                 fd.write(data)
+
+        if not isfile(self.gvimrc):
+            with open(self.gvimrc, 'w') as fd:
+                fd.write(GVIMRC)
+
 
     def log(self, value, *args):
         if args:
