@@ -42,7 +42,7 @@ echo "Sucessfully installed oh-my-vim $version to $install_dir"
 echo "Binary can be found at $install_dir/$ohmyvim"
 
 function add_path() {
-    if [ `grep $install_dir $1` == "" ]
+    if [ "`grep $install_dir $1`" = "" ]
     then
         echo "Adding $install_dir/bin to \$PATH in $1"
         cat << EOF >> $1
