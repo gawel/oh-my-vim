@@ -9,6 +9,8 @@ It's heavily inspired from `oh-my-zsh
 Installation
 ============
 
+You must have `python <http://www.python.org>`_ installed on your system.
+
 It's recommended to install **oh-my-vim** as a non root user.
 
 If you don't know python and virtualenv then just run the install script::
