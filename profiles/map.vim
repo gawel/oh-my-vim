@@ -1,10 +1,17 @@
 " some mapping to navigate in vim
+"
+" copy text to "+
+map <Leader>cc "+y
+
+" paste text from "+
+map <Leader>pp "+P
 
 " only show the current buffer
 map <Leader>o :only<CR>
 
 " open BufExplorer if available
 map <Leader>b :BufExplorer<CR>
+map <Leader>bb :split +BufExplorer<CR>
 
 " toogle nerdtree
 map <Leader>t :NERDTreeToggle<CR>
