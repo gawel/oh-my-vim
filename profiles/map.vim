@@ -1,10 +1,12 @@
 " some mapping to navigate in vim
 "
-" copy text to "+
-map <Leader>cc "+y
+" copy text to "+ (clipboard)
+vmap <Leader>yy "+y
 
-" paste text from "+
+" paste text from "+ (clipboard)
 map <Leader>pp "+P
+imap <Leader>pp "+P
+
 
 " only show the current buffer
 map <Leader>o :only<CR>
