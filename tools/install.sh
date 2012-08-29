@@ -30,6 +30,11 @@ source $install_dir/env/bin/activate || . $install_dir/env/bin/activate
 echo "Installing dependencies..."
 pip install -q ConfigObject argparse
 
+echo "Installing ranger..."
+pip install -q --src="$HOME/.vim/bundle/" \
+    --install-option="--script-dir=$install_dir/bin" \
+    -e "git+https://github.com/hut/ranger.git@master#egg=ranger"
+
 echo "Installing oh-my-vim..."
 pip install -q --src="$HOME/.vim/bundle/" \
     --install-option="--script-dir=$install_dir/bin" \
