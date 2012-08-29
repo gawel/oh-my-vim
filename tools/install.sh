@@ -19,7 +19,7 @@ if ! [ -d "$install_dir/bin" ]
 then
     echo "Installing virtualenv using $py..."
     venvurl='https://raw.github.com/pypa/virtualenv/master/virtualenv.py'
-    curl -sO $venvurl || wget --no-check-certificate -c $venvurl
+    curl -L $venvurl || wget --no-check-certificate -c $venvurl
     $py virtualenv.py -q --distribute env
 fi
 
@@ -46,7 +46,7 @@ version=`$install_dir/bin/oh-my-vim version`
 echo "Sucessfully installed oh-my-vim $version to $install_dir"
 echo "Binary can be found at $install_dir/$ohmyvim"
 
-function add_path() {
+add_path() {
     if [ "`grep $install_dir $1`" = "" ]
     then
         echo "Adding $install_dir/bin to \$PATH in $1"
