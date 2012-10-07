@@ -5,8 +5,8 @@ vmap <Leader>yy "+y
 
 " paste text from "+ (clipboard)
 map <Leader>pp "+P
-imap <Leader>pp "+P
-
+vmap <Leader>pp "+P
+imap <Leader>pp <Space><Esc>"+P<Right>xi
 
 " only show the current buffer
 map <Leader>o :only<CR>
