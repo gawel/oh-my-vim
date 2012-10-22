@@ -1,5 +1,5 @@
 #!/bin/sh
-py=`which python2.6 || which python2.7`
+py=`which python2.7 || which python2.6`
 
 if ! [ -x $py ]
 then
