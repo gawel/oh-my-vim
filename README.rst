@@ -15,7 +15,7 @@ It's recommended to install **oh-my-vim** as a non root user.
 
 If you don't know python and virtualenv then just run the install script::
 
-    $ curl -O https://raw.github.com/gawel/oh-my-vim/master/tools/install.sh | sh -
+    $ curl https://raw.github.com/gawel/oh-my-vim/master/tools/install.sh | sh -
 
 Or with wget::
 
