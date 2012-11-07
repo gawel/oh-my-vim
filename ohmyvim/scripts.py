@@ -307,6 +307,8 @@ class Manager(object):
                                                'autoload', 'pathogen.vim'))
             fd.write('call pathogen#runtime_append_all_bundles()\n')
             fd.write('source %s\n' % join(self.ohmyvim, 'theme.vim'))
+            fd.write('source %s\n' % join(self.runtime, 'oh-my-vim',
+                                          'plugin', 'ohmyvim.vim'))
 
         if 'VIRTUAL_ENV' in os.environ:
             binary = join(os.getenv('VIRTUAL_ENV'), 'bin', 'oh-my-vim')
@@ -340,7 +342,6 @@ class Manager(object):
         if not isfile(self.gvimrc):
             with open(self.gvimrc, 'w') as fd:
                 fd.write(GVIMRC)
-
 
     def log(self, value, *args):
         if args:

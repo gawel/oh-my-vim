@@ -1,6 +1,11 @@
 
 " oh-my-vim related command / tools
 
+if exists("g:loaded_oh_my_vim") || &cp
+    finish
+endif
+let g:loaded_oh_my_vim = 1
+
 command! -complete=custom,OhMyVimCmpl -nargs=+ OhMyVim :call OhMyVim("<args>")
 
 function! OhMyVim(args)
