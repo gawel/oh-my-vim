@@ -1,3 +1,5 @@
+" enable ranger shortcuts
+
 function! RangerChooser()
     if has('gui_running')
         exec "silent !gnome-terminal --disable-factory --maximize -e 'ranger --choosefile=/tmp/chosenfile " . expand("%:p:h") ."'"
