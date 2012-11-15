@@ -15,7 +15,7 @@ map <Leader>o :only<CR>
 map <Leader>b :BufExplorer<CR>
 map <Leader>bb :split +BufExplorer<CR>
 
-" toogle nerdtree
+" toggle nerdtree
 map <Leader>t :NERDTreeToggle<CR>
 
 " create a new file in the current directory
@@ -24,10 +24,10 @@ map <Leader>n :call histadd(':','edit '.substitute(expand('%:p:h'),$HOME,"~","")
 " open a browser in the current directory
 map <Leader>e :edit %:p:h<CR>:5<CR>
 
-" split horizontaly and open a browser in the current directory
+" split horizontally and open a browser in the current directory
 map <Leader>ee :split %:p:h<CR>:5<CR>
 
-" split verticaly and open a browser in the current directory
+" split vertically and open a browser in the current directory
 map <Leader>vv :vsplit %:p:h<CR>:5<CR>
 
 " window left
@@ -45,3 +45,5 @@ map <C-K> <C-W>k<C-W>_
 " maximize window
 map <C-F> <C-W>_
 
+" source current file
+map <C-S> :execute 'source ' . expand('%:p')<CR>

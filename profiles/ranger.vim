@@ -10,5 +10,5 @@ function! RangerChooser()
     endif
     redraw!
 endfunction
-map ,r :call RangerChooser()<CR>
-map ,rr :split +call\ RangerChooser()<CR>
+map <Leader>r :call RangerChooser()<CR>
+map <Leader>rr :split +call\ RangerChooser()<CR>
