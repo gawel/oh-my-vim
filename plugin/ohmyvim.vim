@@ -14,7 +14,7 @@ function! OhMyVim(args)
         echo 'OhMyVim v'.split(system(g:ohmyvim.' version'), '\n')[0]
     elseif a:splitted[0] == 'theme' && len(a:splitted) > 1
         call system(g:ohmyvim.' '.a:args)
-        call pathogen#runtime_append_all_bundles()
+        call pathogen#incubate()
         source ~/.vim/ohmyvim/theme.vim
     else
         echo system(g:ohmyvim.' '.a:args)
