@@ -305,7 +305,7 @@ class Manager(object):
             fd.write('source %s\n' % join(self.ohmyvim, 'env.vim'))
             fd.write('source %s\n' % join(self.runtime, 'vim-pathogen',
                                                'autoload', 'pathogen.vim'))
-            fd.write('call pathogen#runtime_append_all_bundles()\n')
+            fd.write('call pathogen#incubate()\n')
             fd.write('source %s\n' % join(self.ohmyvim, 'theme.vim'))
             fd.write('source %s\n' % join(self.runtime, 'oh-my-vim',
                                           'plugin', 'ohmyvim.vim'))
