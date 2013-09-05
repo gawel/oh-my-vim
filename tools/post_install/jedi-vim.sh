@@ -2,5 +2,5 @@
 # fetch submodules
 
 cd $HOME/.vim/bundle/jedi-vim
-git submodule init
-git submodule update
+git --git-dir=.git submodule init
+git --git-dir=.git submodule update
