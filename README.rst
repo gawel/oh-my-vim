@@ -85,11 +85,11 @@ FAQ
 
 No, but it can help you to setup a friendly environment.
 
-After the installation step install some `usefull
-<https://github.com/gawel/oh-my-vim/tree/master/tools/requires/usefull.txt>`_
+After the installation step install some `useful
+<https://github.com/gawel/oh-my-vim/tree/master/tools/requires/useful.txt>`_
 plugins with the following::
 
-    $ oh-my-vim install -d usefull
+    $ oh-my-vim install -d useful
 
 Then have a look at the `defaults
 <https://github.com/gawel/oh-my-vim/tree/master/profiles/default.vim>`_ and
