@@ -167,7 +167,7 @@ class Bundle(object):
             os.chdir(self.dirname)
             if self.use_git:
                 p = Popen(['git', 'pull', '-qn', 'origin', 'master'],
-                           stdout=PIPE)
+                          stdout=PIPE)
                 p.wait()
             elif self.use_hg:
                 p = Popen(['hg', 'pull', '-qu'], stdout=PIPE)
@@ -268,7 +268,7 @@ class Manager(object):
     dependencies = {
         'vim-pathogen': 'https://github.com/tpope/vim-pathogen.git',
         'oh-my-vim': GIT_URL,
-      }
+    }
 
     def __init__(self):
         self.output = []
@@ -304,8 +304,8 @@ class Manager(object):
         with open(ohmyvim, 'w') as fd:
             fd.write('source %s\n' % join(self.ohmyvim, 'env.vim'))
             fd.write('source %s\n' % join(self.runtime, 'vim-pathogen',
-                                               'autoload', 'pathogen.vim'))
-            fd.write('call pathogen#incubate()\n')
+                                          'autoload', 'pathogen.vim'))
+            fd.write("call pathogen#infect('bundle/{}')\n")
             fd.write('source %s\n' % join(self.ohmyvim, 'theme.vim'))
             fd.write('source %s\n' % join(self.runtime, 'oh-my-vim',
                                           'plugin', 'ohmyvim.vim'))
@@ -332,9 +332,9 @@ class Manager(object):
             else:
                 data = ''
             kw = dict(
-                    ohmyvim=ohmyvim,
-                    binary=binary,
-                    profiles=self.profiles(None, as_list=True))
+                ohmyvim=ohmyvim,
+                binary=binary,
+                profiles=self.profiles(None, as_list=True))
             with open(self.vimrc, 'w') as fd:
                 fd.write(VIMRC % kw)
                 fd.write(data)
@@ -544,15 +544,15 @@ def main(*args):
     p = subparsers.add_parser('install', help='install a script or bundle')
     p.add_argument('--raw', action='store_true', default=False)
     p.add_argument('-f', '--full', default=None,
-                         help="also install required softwares and binaries")
+                   help="also install required softwares and binaries")
     p.add_argument('-d', '--dist', default=None,
-                                   help="install a distribution")
+                   help="install a distribution")
     p.add_argument('url', nargs='*', default='')
     p.set_defaults(action=manager.install)
 
     p = subparsers.add_parser('upgrade', help='upgrade bundles')
     p.add_argument('-f', '--full', default=None,
-                         help="also install required softwares and binaries")
+                   help="also install required softwares and binaries")
     p.add_argument('bundle', nargs='*', default='')
     p.set_defaults(action=manager.upgrade)
 
