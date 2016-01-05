@@ -3,7 +3,7 @@ from os.path import isdir
 from os.path import isfile
 from os.path import basename
 from ConfigObject import ConfigObject
-from urllib import urlopen
+from urllib.request import urlopen
 from subprocess import Popen
 from subprocess import PIPE
 from glob import glob
