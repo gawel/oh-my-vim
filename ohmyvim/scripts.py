@@ -3,7 +3,6 @@ from os.path import isdir
 from os.path import isfile
 from os.path import basename
 from ConfigObject import ConfigObject
-from urllib.request import urlopen
 from subprocess import Popen
 from subprocess import PIPE
 from glob import glob
@@ -13,6 +12,11 @@ import shutil
 import json
 import sys
 import os
+
+try:
+    from urllib import urlopen
+except ImportError:
+    from urllib.request import urlopen
 
 VIMRC = '''
 " Added by oh-my-vim
