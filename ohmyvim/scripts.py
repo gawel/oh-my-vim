@@ -92,14 +92,14 @@ class Bundle(object):
         if self.use_git:
             p = Popen(['git', 'remote', '-v'], stdout=PIPE)
             stdout, stderr = p.communicate()
-            stdout = stdout.encode('utf8')
+            stdout = stdout.decode('utf8')
             remote = stdout.split('\n')[0]
             remote = remote.split('\t')[1].split(' ')[0]
             return remote
         elif self.use_hg:
             p = Popen(['hg', 'path'], stdout=PIPE)
             stdout, stderr = p.communicate()
-            stdout = stdout.encode('utf8')
+            stdout = stdout.decode('utf8')
             remote = stdout.split('\n')[0]
             remote = remote.split(' = ')[1].strip()
             return remote
