@@ -101,7 +101,6 @@ class Bundle(object):
             stdout, stderr = p.communicate()
             stdout = stdout.encode('utf8')
             remote = stdout.split('\n')[0]
-            remote = p.stdout.read().split('\n')[0]
             remote = remote.split(' = ')[1].strip()
             return remote
 
