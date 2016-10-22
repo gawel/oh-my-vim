@@ -91,13 +91,16 @@ class Bundle(object):
         os.chdir(self.dirname)
         if self.use_git:
             p = Popen(['git', 'remote', '-v'], stdout=PIPE)
-            p.wait()
-            remote = p.stdout.read().split('\n')[0]
+            stdout, stderr = p.communicate()
+            stdout = stdout.encode('utf8')
+            remote = stdout.split('\n')[0]
             remote = remote.split('\t')[1].split(' ')[0]
             return remote
         elif self.use_hg:
             p = Popen(['hg', 'path'], stdout=PIPE)
-            p.wait()
+            stdout, stderr = p.communicate()
+            stdout = stdout.encode('utf8')
+            remote = stdout.split('\n')[0]
             remote = p.stdout.read().split('\n')[0]
             remote = remote.split(' = ')[1].strip()
             return remote

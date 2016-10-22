@@ -1,11 +1,13 @@
 #!/bin/sh
-py=`which python2.7 || which python2.6`
+pyvenv=`which pyvenv`
 
-if ! [ -x $py ]
+if ! [ -x $pyvenv ]
 then
-    echo "Can't find a python interpreter"
+    echo "Can't find a pyvenv binary"
     exit
 fi
+
+py=`dirname $pyvenv`/python
 
 echo "Using $py"
 
@@ -17,15 +19,13 @@ cd $install_dir
 
 if ! [ -d "$install_dir/bin" ]
 then
-    echo "Installing virtualenv using $py..."
-    venvurl='https://raw.github.com/pypa/virtualenv/master/virtualenv.py'
-    curl -O -L $venvurl || wget --no-check-certificate -c $venvurl
-    $py virtualenv.py -q --distribute env
+    echo "Installing pyvenv using $pyvenv..."
+    $pyvenv  env
 fi
 
 ! [ -d $bundles ] && mkdir -p $bundles
 
-source $install_dir/env/bin/activate || . $install_dir/env/bin/activate
+. $install_dir/env/bin/activate
 
 echo "Installing dependencies..."
 pip install -q ConfigObject argparse

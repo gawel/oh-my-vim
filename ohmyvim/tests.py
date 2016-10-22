@@ -131,11 +131,14 @@ class TestInstall(unittest.TestCase, Mixin):
         def setenv(key, value):
             os.environ[key] = value
 
-        self.addCleanup(setenv, 'PYTHONPATH', os.environ['PYTHONPATH'])
+        self.addCleanup(setenv, 'PYTHONPATH', os.environ.get('PYTHONPATH', ''))
         self.addCleanup(setenv, 'BUILDOUT_ORIGINAL_PYTHONPATH',
-                                os.environ['BUILDOUT_ORIGINAL_PYTHONPATH'])
+                        os.environ.get('BUILDOUT_ORIGINAL_PYTHONPATH', ''))
         os.environ['PYTHONPATH'] = ''
-        del os.environ['BUILDOUT_ORIGINAL_PYTHONPATH']
+        try:
+            del os.environ['BUILDOUT_ORIGINAL_PYTHONPATH']
+        except KeyError:
+            pass
 
     def test_install(self):
         script = os.path.join(
@@ -145,6 +148,6 @@ class TestInstall(unittest.TestCase, Mixin):
         self.assertIsFile('.oh-my-vim/env/bin/python')
         self.assertIsFile('.oh-my-vim/bin/oh-my-vim')
         subprocess.Popen(' '.join(
-                       [os.path.join(self.wd, '.oh-my-vim/bin/oh-my-vim'),
-                       'upgrade']),
-                       shell=True).wait()
+            [os.path.join(self.wd, '.oh-my-vim/bin/oh-my-vim'),
+             'upgrade']),
+             shell=True).wait()
