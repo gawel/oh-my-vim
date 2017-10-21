@@ -373,7 +373,7 @@ class Manager(object):
         terms = '%20'.join(terms)
         url = ("https://github.com/search?"
                "langOverride=&repo=&start_value=1&"
-               "type=Repositories&language=VimL&q=") + terms
+               "type=Repositories&l=Vim&q=") + terms
         if '__ohmyvim_test__' not in os.environ:
             webbrowser.open_new(url)
         else:
@@ -582,7 +582,10 @@ def main(*args):
     else:
         args = parser.parse_args()
 
-    args.action(args)
+    try:
+        args.action(args)
+    except AttributeError:
+        parser.parse_args(['-h'])
 
     if '__ohmyvim_test__' in os.environ:
         return manager.output
