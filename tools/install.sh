@@ -1,13 +1,8 @@
 #!/bin/sh
-pyvenv=`which pyvenv`
 
-if ! [ -x $pyvenv ]
-then
-    echo "Can't find a pyvenv binary"
-    exit
-fi
+set -e
 
-py=`dirname $pyvenv`/python
+py=`which python3`
 
 echo "Using $py"
 
@@ -20,25 +15,29 @@ cd $install_dir
 if ! [ -d "$install_dir/bin" ]
 then
     echo "Installing pyvenv using $pyvenv..."
-    $pyvenv  env
+    $py -m venv .
 fi
 
 ! [ -d $bundles ] && mkdir -p $bundles
 
-. $install_dir/env/bin/activate
+. $install_dir/bin/activate
+
+pip=$install_dir/bin/pip
 
 echo "Installing dependencies..."
-pip install -q ConfigObject argparse
+$pip install -q ConfigObject argparse
 
 echo "Installing ranger..."
-pip install -q --src="$HOME/.vim/bundle/" \
-    --install-option="--script-dir=$install_dir/bin" \
+$pip install -q --src="$HOME/.vim/bundle/" \
     -e "git+https://github.com/hut/ranger.git@master#egg=ranger"
 
 echo "Installing oh-my-vim..."
-pip install -q --src="$HOME/.vim/bundle/" \
-    --install-option="--script-dir=$install_dir/bin" \
-    -e "git+https://github.com/gawel/oh-my-vim.git@master#egg=oh-my-vim"
+if [ -d $HOME/.vim/bundle/oh-my-vim ]; then
+    $pip install -q -e "$HOME/.vim/bundle/oh-my-vim"
+else
+    $pip install -q --src="$HOME/.vim/bundle/" \
+        -e "git+https://github.com/gawel/oh-my-vim.git@master#egg=oh-my-vim"
+fi
 
 $install_dir/bin/oh-my-vim version > /dev/null
 version=`$install_dir/bin/oh-my-vim version`
